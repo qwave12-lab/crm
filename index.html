@@ -137,10 +137,12 @@ margin:auto;
 
 <b>Предложение банка</b>
 
-<select id="bankOffer">
+<select id="bankOffer" onchange="updateCrossBlock()">
 <option value="no">Не было</option>
 <option value="yes">Было</option>
 </select>
+
+<div id="crossBlock">
 
 <b>Cross продажа</b>
 
@@ -149,6 +151,8 @@ margin:auto;
 <option value="cc">Cross КК</option>
 <option value="combo">Cross Комбо</option>
 </select>
+
+</div>
 
 </div>
 <div id="servicesBox"></div>
@@ -295,6 +299,22 @@ block.style.display="none"
 }else{
 
 block.style.display="block"
+
+}
+
+}
+ function updateCrossBlock(){
+
+let offer=document.getElementById("bankOffer").value
+let cross=document.getElementById("crossBlock")
+
+if(offer==="yes"){
+
+cross.style.display="block"
+
+}else{
+
+cross.style.display="none"
 
 }
 
@@ -644,12 +664,14 @@ btn.innerText="Свернуть список ▲"
 load()
 renderServices()
 updateOfferBlock()
+updateCrossBlock()
 render()
 
 </script>
 
 </body>
 </html>
+
 
 
 
