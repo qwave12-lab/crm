@@ -129,11 +129,11 @@ margin:auto;
 <input id="name" placeholder="ФИО">
 <input id="phone" placeholder="Телефон">
 
-<select id="type">
+<select id="type" onchange="updateOfferBlock()">
 <option value="ДК">ДК</option>
 <option value="КК">КК</option>
 </select>
-<div style="margin-top:10px">
+<div id="offerBlock" style="margin-top:10px">
 
 <b>Предложение банка</b>
 
@@ -279,7 +279,22 @@ renderServiceManager()
 function toggleCards(){
 
 cardsCollapsed=!cardsCollapsed
+function updateOfferBlock(){
 
+let type=document.getElementById("type").value
+let block=document.getElementById("offerBlock")
+
+if(type==="КК"){
+
+block.style.display="none"
+
+}else{
+
+block.style.display="block"
+
+}
+
+}
 render()
 
 }
@@ -484,13 +499,15 @@ ppiCount++
 
 }
 
-if(m.bankOffer==="yes"){
+if(m.type==="ДК" && m.bankOffer==="yes"){
+
 bankOffers++
-}
 
 if(m.crossSale==="cc" || m.crossSale==="combo"){
 crossSales++
-} 
+}
+
+}
 
 let text=(m.name + " " + (m.date || "")).toLowerCase()
 
@@ -625,12 +642,14 @@ btn.innerText="Свернуть список ▲"
 
 load()
 renderServices()
+updateOfferBlock()
 render()
 
 </script>
 
 </body>
 </html>
+
 
 
 
