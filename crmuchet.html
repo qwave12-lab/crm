@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Delivery CRM</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f4f8;
+padding:20px;
+}
+
+.panel{
+background:white;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+input,select{
+padding:8px;
+width:100%;
+margin-bottom:8px;
+}
+
+button{
+padding:8px;
+border:none;
+background:#007aff;
+color:white;
+border-radius:6px;
+cursor:pointer;
+margin-top:5px;
+}
+
+.card{
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+background:#ffffff;
+}
+
+.card-date{
+font-size:13px;
+color:#666;
+margin-bottom:8px;
+display:block;
+}
+
+.card.ok{
+background:#f1fbf3;
+}
+
+.card.transfer{
+background:#fff1f1;
+}
+.card-body{
+margin-top:6px;
+}
+.serviceItem{
+display:flex;
+align-items:center;
+gap:8px;
+margin-bottom:6px;
+}
+
+.serviceItem input{
+width:auto;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Delivery CRM</h2>
+
+<div class="panel">
+
+<h3>Добавить встречу</h3>
+
+<input id="name" placeholder="ФИО">
+<input id="phone" placeholder="Телефон">
+
+<select id="type">
+<option value="ДК">ДК</option>
+<option value="КК">КК</option>
+</select>
+
+<div id="servicesBox"></div>
+
+<input id="comment" placeholder="Комментарий">
+
+<button onclick="addMeeting()">Добавить</button>
+<button onclick="transferMeeting()">Перенос</button>
+
+</div>
+
+<div class="panel">
+
+<h3>Добавить услугу</h3>
+
+<input id="serviceName" placeholder="Название">
+<input id="servicePrice" placeholder="Цена">
+
+<button onclick="addService()">Добавить услугу</button>
+
+<div id="serviceList"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>СТАТИСТИКА</h3>
+
+Всего встреч: <span id="total">0</span><br>
+Успешные: <span id="success">0</span><br>
+Переносы: <span id="transfers">0</span><br>
+% успешных: <span id="successPercent">0</span>%<br>
+% переносов: <span id="transferPercent">0</span>%<br><br>
+
+<b>Статистика услуг</b><br>
+<div id="servicesStats"></div>
+
+<br>
+
+<b>Доход</b><br>
+Аванс: <span id="advance">0</span> ₽<br>
+Остаток: <span id="rest">0</span> ₽<br>
+Услуги: <span id="servicesIncome">0</span> ₽<br>
+<b>Итого: <span id="income">0</span> ₽</b>
+
+</div>
+<div class="panel">
+
+<h3>
+Поиск клиента
+<button onclick="toggleCards()" id="toggleBtn" style="float:right">
+Свернуть ▲
+</button>
+</h3>
+
+<input id="searchInput" placeholder="ФИО или дата (11.03.2026)" oninput="render()">
+
+<div id="meetings"></div>
+
+<div id="collapsedInfo" style="display:none;text-align:center;color:#666;margin-top:10px">
+</div>
+
+</div>
+
+
+
+<div class="panel">
+
+<button onclick="selectAll()">Выбрать всех</button>
+<button onclick="deleteSelected()">Удалить выбранных</button>
+
+</div>
+
+<script>
+
+let meetings=[]
+let services=[]
+let cardsCollapsed=false
+
+function save(){
+localStorage.setItem("meetings",JSON.stringify(meetings))
+localStorage.setItem("services",JSON.stringify(services))
+}
+
+function load(){
+
+let m=localStorage.getItem("meetings")
+let s=localStorage.getItem("services")
+
+if(m) meetings=JSON.parse(m)
+if(s) services=JSON.parse(s)
+
+}
+
+function renderServices(){
+
+let box=document.getElementById("servicesBox")
+box.innerHTML=""
+
+services.forEach((s)=>{
+
+box.innerHTML+=`
+<div class="serviceItem">
+<input type="checkbox" value="${s.name}">
+<span>${s.name} (${s.price} ₽)</span>
+</div>
+`
+
+})
+
+renderServiceManager()
+
+}
+function toggleCards(){
+
+cardsCollapsed=!cardsCollapsed
+
+render()
+
+}
+function renderServiceManager(){
+
+let list=document.getElementById("serviceList")
+list.innerHTML=""
+
+services.forEach((s,i)=>{
+
+list.innerHTML+=`
+<div>
+${s.name} — ${s.price} ₽
+<button onclick="deleteService(${i})">Удалить</button>
+</div>
+`
+
+})
+
+}
+
+function addService(){
+
+let name=document.getElementById("serviceName").value
+let price=Number(document.getElementById("servicePrice").value)
+
+if(!name || !price){
+alert("Введите услугу и цену")
+return
+}
+
+services.push({name,price})
+
+save()
+renderServices()
+
+}
+
+function deleteService(i){
+
+services.splice(i,1)
+
+save()
+renderServices()
+
+}
+
+function getSelectedServices(){
+
+let arr=[]
+
+let checkboxes=document.querySelectorAll("#servicesBox input:checked")
+
+checkboxes.forEach(c=>{
+arr.push(c.value)
+})
+
+return arr
+
+}
+
+function calculateIncome(list){
+
+let total=0
+
+list.forEach(n=>{
+
+let s=services.find(x=>x.name===n)
+
+if(s) total+=s.price
+
+})
+
+return total
+
+}
+
+function addMeeting(){
+
+let name=document.getElementById("name").value
+
+if(!name){
+alert("Введите ФИО")
+return
+}
+
+let phone=document.getElementById("phone").value
+let type=document.getElementById("type").value
+let comment=document.getElementById("comment").value
+
+let serviceList=getSelectedServices()
+
+let income=calculateIncome(serviceList)
+let today = new Date().toLocaleDateString("ru-RU")
+
+meetings.push({
+name,
+phone,
+type,
+services:serviceList,
+status:"ok",
+comment,
+income,
+date: today
+})
+
+save()
+render()
+
+}
+
+function transferMeeting(){
+
+let comment=document.getElementById("comment").value
+let name=document.getElementById("name").value
+
+if(!name){
+alert("Введите ФИО")
+return
+}
+
+let today = new Date().toLocaleDateString("ru-RU")
+
+meetings.push({
+name,
+status:"transfer",
+income:0,
+comment,
+date: today
+})
+
+save()
+render()
+
+}
+
+function deleteSelected(){
+
+let checks=document.querySelectorAll(".clientSelect")
+
+let newMeetings=[]
+
+checks.forEach((c,i)=>{
+
+if(!c.checked){
+newMeetings.push(meetings[i])
+}
+
+})
+
+meetings=newMeetings
+
+save()
+render()
+
+}
+
+function selectAll(){
+
+let checks=document.querySelectorAll(".clientSelect")
+
+checks.forEach(c=>{
+c.checked=true
+})
+
+}
+
+function render(){
+
+let list=document.getElementById("meetings")
+list.innerHTML=""
+let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
+
+let transfers=0
+let success=0
+
+let advance=0
+let rest=0
+let servicesIncome=0
+
+let serviceStats={}
+
+meetings.forEach((m,i)=>{
+
+let text=(m.name + " " + (m.date || "")).toLowerCase()
+
+if(search && !text.includes(search)){
+return
+}
+
+if(m.status==="transfer"){
+
+transfers++
+
+}else{
+
+success++
+
+advance+=300
+rest+=100
+
+servicesIncome+=Number(m.income || 0)
+
+if(m.services){
+
+m.services.forEach(s=>{
+
+if(!serviceStats[s]){
+serviceStats[s]=0
+}
+
+serviceStats[s]++
+
+})
+
+}
+
+}
+
+list.innerHTML+=`
+<div class="card ${m.status}">
+
+<input type="checkbox" class="clientSelect">
+
+<span class="card-date">${m.date || ""}</span>
+<b>${m.name}</b><br>
+
+<div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
+
+Телефон: ${m.phone || ""}<br>
+Тип: ${m.type || ""}<br>
+Услуги: ${(m.services||[]).join(", ")}<br>
+Статус: ${m.status==="transfer" ? "перенос" : "ok"} ${m.comment ? "(" + m.comment + ")" : ""}<br>
+
+</div>
+
+</div>
+`
+})
+
+let total=meetings.length
+
+let transferPercent=0
+let successPercent=0
+
+if(total>0){
+
+transferPercent=Math.round(transfers/total*100)
+successPercent=Math.round(success/total*100)
+
+}
+
+let totalIncome = advance + rest + servicesIncome
+
+document.getElementById("total").innerText=total
+document.getElementById("transfers").innerText=transfers
+document.getElementById("success").innerText=success
+
+document.getElementById("transferPercent").innerText=transferPercent
+document.getElementById("successPercent").innerText=successPercent
+
+document.getElementById("advance").innerText=advance
+document.getElementById("rest").innerText=rest
+document.getElementById("servicesIncome").innerText=servicesIncome
+
+document.getElementById("income").innerText=totalIncome
+
+let btn=document.getElementById("toggleBtn")
+let info=document.getElementById("collapsedInfo")
+
+if(cardsCollapsed){
+
+list.style.display="none"
+info.style.display="block"
+info.innerText="Скрыто клиентов: " + meetings.length
+
+btn.innerText="Открыть ▼"
+
+}else{
+
+list.style.display="block"
+info.style.display="none"
+
+btn.innerText="Свернуть ▲"
+
+}
+
+if(btn){
+
+if(cardsCollapsed){
+btn.innerText="Открыть список ▼"
+}else{
+btn.innerText="Свернуть список ▲"
+}
+
+}
+
+
+}
+
+load()
+renderServices()
+render()
+
+</script>
+
+</body>
+</html>
