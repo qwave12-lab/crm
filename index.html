@@ -581,6 +581,24 @@ list.innerHTML+=`
 Услуги: ${(m.services||[]).join(", ")}<br>
 Статус: ${m.status==="transfer" ? "перенос" : "ok"} ${m.comment ? "(" + m.comment + ")" : ""}<br>
 
+Телефон: ${m.phone || ""}<br>
+Тип: ${m.type || ""}<br>
+Услуги: ${(m.services||[]).join(", ")}<br>
+
+Cross: ${
+m.type==="КК"
+? "не применяется"
+: m.bankOffer==="no"
+? "предложения не было"
+: m.crossSale==="none"
+? "отказ"
+: m.crossSale==="cc"
+? "Cross КК"
+: "Cross Комбо"
+}<br>
+
+Статус: ${m.status==="transfer" ? "перенос" : "ok"} ${m.comment ? "(" + m.comment + ")" : ""}<br>
+
 </div>
 
 </div>
@@ -671,6 +689,7 @@ render()
 
 </body>
 </html>
+
 
 
 
