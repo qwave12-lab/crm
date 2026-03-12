@@ -133,7 +133,24 @@ margin:auto;
 <option value="ДК">ДК</option>
 <option value="КК">КК</option>
 </select>
+<div style="margin-top:10px">
 
+<b>Предложение банка</b>
+
+<select id="bankOffer">
+<option value="no">Не было</option>
+<option value="yes">Было</option>
+</select>
+
+<b>Cross продажа</b>
+
+<select id="crossSale">
+<option value="none">Нет</option>
+<option value="cc">Cross КК</option>
+<option value="combo">Cross Комбо</option>
+</select>
+
+</div>
 <div id="servicesBox"></div>
 
 <input id="comment" placeholder="Комментарий">
@@ -176,6 +193,14 @@ margin:auto;
 Остаток: <span id="rest">0</span> ₽<br>
 Услуги: <span id="servicesIncome">0</span> ₽<br>
 <b>Итого: <span id="income">0</span> ₽</b>
+ 
+<br>
+
+<b>Cross статистика</b><br>
+
+Предложений банка: <span id="bankOffers">0</span><br>
+Продано Cross: <span id="crossSales">0</span><br>
+Конверсия: <span id="crossPercent">0</span>%<br> 
 
 </div>
 <div class="panel">
@@ -337,6 +362,10 @@ return
 
 let phone=document.getElementById("phone").value
 let type=document.getElementById("type").value
+ 
+let bankOffer=document.getElementById("bankOffer").value
+let crossSale=document.getElementById("crossSale").value
+ 
 let comment=document.getElementById("comment").value
 
 let serviceList=getSelectedServices()
@@ -352,7 +381,11 @@ services:serviceList,
 status:"ok",
 comment,
 income,
-date: today
+date: today,
+
+bankOffer,
+crossSale
+
 })
 
 save()
@@ -428,10 +461,19 @@ let success=0
 let advance=0
 let rest=0
 let servicesIncome=0
+let bankOffers=0
+let crossSales=0 
 
 let serviceStats={}
 
 meetings.forEach((m,i)=>{
+if(m.bankOffer==="yes"){
+bankOffers++
+}
+
+if(m.crossSale==="cc" || m.crossSale==="combo"){
+crossSales++
+} 
 
 let text=(m.name + " " + (m.date || "")).toLowerCase()
 
@@ -500,7 +542,11 @@ transferPercent=Math.round(transfers/total*100)
 successPercent=Math.round(success/total*100)
 
 }
+let crossPercent=0
 
+if(bankOffers>0){
+crossPercent=Math.round(crossSales/bankOffers*100)
+}
 let totalIncome = advance + rest + servicesIncome
 
 document.getElementById("total").innerText=total
@@ -515,6 +561,9 @@ document.getElementById("rest").innerText=rest
 document.getElementById("servicesIncome").innerText=servicesIncome
 
 document.getElementById("income").innerText=totalIncome
+document.getElementById("bankOffers").innerText=bankOffers
+document.getElementById("crossSales").innerText=crossSales
+document.getElementById("crossPercent").innerText=crossPercent 
 
 let btn=document.getElementById("toggleBtn")
 let info=document.getElementById("collapsedInfo")
@@ -557,6 +606,7 @@ render()
 
 </body>
 </html>
+
 
 
 
