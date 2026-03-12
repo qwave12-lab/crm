@@ -232,7 +232,7 @@ function addService(){
 let name=document.getElementById("serviceName").value
 let price=Number(document.getElementById("servicePrice").value)
 
-if(!name || !price){
+if(!name || price === "" || isNaN(price)){
 alert("Введите услугу и цену")
 return
 }
@@ -514,3 +514,4 @@ render()
 
 </body>
 </html>
+
