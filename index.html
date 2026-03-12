@@ -195,7 +195,13 @@ margin:auto;
 <b>Итого: <span id="income">0</span> ₽</b>
  
 <br>
+<br>
 
+<b>PPI статистика</b><br>
+
+Кредитных карт: <span id="kkCount">0</span><br>
+PPI подключено: <span id="ppiCount">0</span><br>
+PPI %: <span id="ppiPercent">0</span>%<br>
 <b>Cross статистика</b><br>
 
 Предложений банка: <span id="bankOffers">0</span><br>
@@ -457,7 +463,9 @@ let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
 let transfers=0
 let success=0
-
+let kkCount=0
+let ppiCount=0
+ 
 let advance=0
 let rest=0
 let servicesIncome=0
@@ -467,6 +475,15 @@ let crossSales=0
 let serviceStats={}
 
 meetings.forEach((m,i)=>{
+if(m.type==="КК"){
+kkCount++
+
+if(m.services && m.services.includes("PPI")){
+ppiCount++
+}
+
+}
+
 if(m.bankOffer==="yes"){
 bankOffers++
 }
@@ -494,6 +511,7 @@ rest+=100
 
 servicesIncome+=Number(m.income || 0)
 
+ 
 if(m.services){
 
 m.services.forEach(s=>{
@@ -530,7 +548,11 @@ list.innerHTML+=`
 </div>
 `
 })
+let ppiPercent=0
 
+if(kkCount>0){
+ppiPercent=Math.round(ppiCount/kkCount*100)
+}
 let total=meetings.length
 
 let transferPercent=0
@@ -606,6 +628,7 @@ render()
 
 </body>
 </html>
+
 
 
 
