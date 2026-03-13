@@ -46,6 +46,19 @@ button:active{ opacity:0.8; }
 @media (min-width:700px){
   body{ max-width:700px; margin:auto; }
 }
+.copyBtn{
+  width:auto;
+  background:none;
+  border:none;
+  color:#777;
+  font-size:13px;
+  padding:4px 0;
+  margin-top:8px;
+}
+
+.copyBtn:active{
+  opacity:0.6;
+}
 </style>
 </head>
 
@@ -70,11 +83,7 @@ button:active{ opacity:0.8; }
   <option value="adult">Взрослый</option>
   <option value="teen">14-17</option>
 </select>
-<b>Платформа телефона</b>
-<select id="phoneType">
-  <option value="ios">IOS</option>
-  <option value="android">Android</option>
-</select>
+
 <div id="offerBlock" style="margin-top:10px"></div>
 
   <b>Cross</b>
@@ -121,17 +130,11 @@ button:active{ opacity:0.8; }
 
 </div>
 
+ 
+
+  
+
   <br>
-
-  <b>Доход</b><br>
-  Аванс: <span id="advance">0</span> ₽<br>
-  Остаток: <span id="rest">0</span> ₽<br>
-Услуги: <span id="servicesIncome">0</span> ₽<br>
-Cross: <span id="crossIncome">0</span> ₽<br>
-<b>Итого: <span id="income">0</span> ₽</b>
-
-  <br><br>
-
   <b>PPI статистика</b><br>
   Кредитных карт: <span id="kkCount">0</span><br>
   PPI подключено: <span id="ppiCount">0</span><br>
@@ -141,6 +144,13 @@ Cross: <span id="crossIncome">0</span> ₽<br>
   Предложений банка: <span id="bankOffers">0</span><br>
   Продано Cross: <span id="crossSales">0</span><br>
   Конверсия: <span id="crossPercent">0</span>%<br>
+
+  <b>Доход</b><br>
+  Аванс: <span id="advance">0</span> ₽<br>
+  Остаток: <span id="rest">0</span> ₽<br>
+Услуги: <span id="servicesIncome">0</span> ₽<br>
+Cross: <span id="crossIncome">0</span> ₽<br>
+<b>Итого: <span id="income">0</span> ₽</b>
 </div>
 
 <!-- Поиск и список -->
@@ -225,7 +235,16 @@ function renderServices(){
       <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
     `
   }
-
+  
+box.innerHTML+=`
+    <div class="serviceItem">
+      <span>Платформа телефона</span>
+      <select id="phoneType">
+      <option value="ios">IOS</option>
+    <option value="android">Android</option>
+    </select>
+  </div>
+`
   // МП: статус (не чекбокс) — "Не установил / Установил / Уже было"
   box.innerHTML+=`
     <div class="serviceItem">
@@ -237,6 +256,39 @@ function renderServices(){
       </select>
     </div>
   `
+}
+function copyReport(i){
+
+let reversed=[...meetings].reverse()
+let m=reversed[i]
+
+let services=m.services || []
+
+let text=`${m.type}
+
+${m.name}
+
+1. Актив: ${services.includes("activation") ? "+" : ""}
+2. ЦП: ${services.includes("cp") ? "+" : ""}
+3. ЖКУ: ${services.includes("jku") ? "+" : ""}
+4. Комбо/транз: ${services.includes("transaction") ? "+" : ""}
+5. Кросс дк/транз: ${m.crossSale==="cc" || m.crossSale==="combo" ? "+" : ""}
+6. Мп на ${m.phoneType==="ios" ? "айос" : "андроид"}
+7. Кэш:
+8. А-чек: ${services.includes("alphaCheck") ? "+" : ""}
+9. Смарт: ${services.includes("alphaSmart") ? "+" : ""}
+11. Реф:
+12. Дети:
+13. Селфи:
+14. VOC: 5
+15. БС/ Инвесткопилка 0/0
+16. Пенсия
+17. Страховка
+`
+
+navigator.clipboard.writeText(text)
+
+alert("Текст скопирован")
 }
 function toggleFullStats(){
 
@@ -264,16 +316,25 @@ function toggleCards(){
 
 /* при смене типа карты — скрываем cross/возраст и обновляем услуги */
 function updateOfferBlock(){
+
   let type=document.getElementById("type").value
-  let block=document.getElementById("offerBlock")
   let ageSelect=document.getElementById("age")
 
+  let bankOffer=document.getElementById("bankOffer")
+  let crossBlock=document.getElementById("crossBlock")
+
   if(type==="СС" || type==="СС1" || type==="СС2"){
-    block.style.display="none"
+
     ageSelect.style.display="none"
+    bankOffer.style.display="none"
+    crossBlock.style.display="none"
+
   }else{
-    block.style.display="block"
+
     ageSelect.style.display="block"
+    bankOffer.style.display="block"
+    crossBlock.style.display="block"
+
   }
 
   renderServices()
@@ -338,10 +399,12 @@ function addMeeting(status){
   let phone=document.getElementById("phone").value
   let type=document.getElementById("type").value
   // важно: захватываем phoneType перед сохранением (исправлено)
-  let phoneType=document.getElementById("phoneType")?.value || "ios"
-  let bankOffer=document.getElementById("bankOffer").value
-  let crossSale=document.getElementById("crossSale").value
-  let comment=document.getElementById("comment").value
+let phoneType=document.getElementById("phoneType")?.value || "ios"
+
+let bankOffer=document.getElementById("bankOffer")?.value || "no"
+let crossSale=document.getElementById("crossSale")?.value || "none"
+
+let comment=document.getElementById("comment").value
   let age=document.getElementById("age")?.value || "adult"
 
   let serviceList=getSelectedServices()
@@ -529,18 +592,19 @@ list.innerHTML += `
 <b>${m.name}</b><br>${m.type || ""}<br>
 
 <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
+  
 
 Телефон: ${m.phone || ""}<br>
 Услуги: ${serviceNames || '-'}<br>
-
+Статус: ${m.status==="bankReject" ? "отказ банка" : "успешно"}<br>
 ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
 
 ${m.type==="DC" ? `
 Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossSale==="none" ? "отказ клиента" : (m.crossSale==="cc" ? "Cross КК" : "Cross Комбо"))}<br>
 ` : ""}
-
-Статус: ${m.status==="bankReject" ? "отказ банка" : "успешно"}
-
+<button class="copyBtn" onclick="copyReport(${i})">
+<br>скопировать в буфер<br>
+</button>
 </div>
 </div>
 `
