@@ -55,9 +55,19 @@ button:active{ opacity:0.8; }
   padding:4px 0;
   margin-top:8px;
 }
-
+.tag-orange{
+background:#f4d7b5;
+color:#d97706;
+padding:4px 8px;
+border-radius:10px;
+font-weight:12px;
+letter-spacing:1px;
+display:inline-block;
+text-transform:uppercase;
+margin-bottom:4px;
+}
 .copyBtn:active{
-  opacity:0.6;
+  opacity:0.4;
 }
 </style>
 </head>
@@ -256,6 +266,21 @@ box.innerHTML+=`
       </select>
     </div>
   `
+}
+function formatName(name){
+
+if(!name) return ""
+
+if(name.toLowerCase().includes("orange")){
+
+let clean=name.replace(/orange/gi,"").trim()
+
+return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
+
+}
+
+return `<b>${name}</b>`
+
 }
 function copyReport(i){
 
@@ -572,7 +597,7 @@ list.innerHTML += `
 <div class="card transfer">
 <input type="checkbox" class="clientSelect">
 <span class="card-date">${m.date || ""}</span>
-<b>${m.name}</b>
+${formatName(m.name)}
 
 <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
 
@@ -589,7 +614,7 @@ list.innerHTML += `
 <div class="card ${m.status}">
 <input type="checkbox" class="clientSelect">
 <span class="card-date">${m.date || ""}</span>
-<b>${m.name}</b><br>${m.type || ""}<br>
+${formatName(m.name)}<br>${m.type || ""}<br>
 
 <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
   
