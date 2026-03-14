@@ -46,14 +46,48 @@ button:active{ opacity:0.8; }
 @media (min-width:700px){
   body{ max-width:700px; margin:auto; }
 }
+.planItem{
+margin-bottom:12px;
+}
+
+.planBar{
+height:10px;
+background:#eee;
+border-radius:10px;
+overflow:hidden;
+margin-top:4px;
+}
+
+.planFill{
+height:100%;
+border-radius:10px;
+}
+
+.green{ background:#34c759 }
+.yellow{ background:#ffcc00 }
+.red{ background:#ff3b30 }
 .copyBtn{
-  width:auto;
-  background:none;
-  border:none;
-  color:#777;
-  font-size:13px;
-  padding:4px 0;
-  margin-top:8px;
+width:auto;
+background:none;
+border:none;
+padding:6px;
+margin-top:8px;
+cursor:pointer;
+}
+.statsRow{
+display:flex;
+justify-content:flex-start;
+gap:40px;
+font-family:monospace;
+font-size:15px;
+}
+
+.statsRow span:first-child{
+width:120px;
+display:inline-block;
+}
+.card.ndz{
+border-left:5px solid #ff9500;
 }
 .tag-orange{
 background:#f4d7b5;
@@ -68,6 +102,54 @@ margin-bottom:4px;
 }
 .copyBtn:active{
   opacity:0.4;
+}
+.tag-t0{
+background:#ffd6e7;
+color:#d63384;
+padding:5px 10px;
+border-radius:10px;
+font-weight:700;
+font-size:12px;
+letter-spacing:1px;
+display:inline-block;
+text-transform:uppercase;
+margin-bottom:4px;
+}
+.tag-ndz{
+background:#ffd6d6;
+color:#c1121f;
+padding:5px 10px;
+border-radius:10px;
+font-weight:700;
+font-size:12px;
+letter-spacing:1px;
+display:inline-block;
+text-transform:uppercase;
+margin-bottom:4px;
+}
+
+.tag-reject{
+background:#ffe5e5;
+color:#b00020;
+padding:5px 10px;
+border-radius:10px;
+font-weight:700;
+font-size:12px;
+letter-spacing:1px;
+display:inline-block;
+text-transform:uppercase;
+margin-bottom:4px;
+}
+.statsRow{
+display:grid;
+grid-template-columns: 170px auto;
+gap:10px;
+font-size:15px;
+}
+
+.statsRow span:last-child{
+text-align:right;
+font-weight:600;
 }
 </style>
 </head>
@@ -115,13 +197,14 @@ margin-bottom:4px;
 <div id="servicesBox"></div>
 
 <input id="comment" placeholder="Комментарий">
-
+<input type="file" id="screenshot" accept="image/*">
 <button onclick="toggleStatusMenu()">Статус</button>
 
 <div id="statusMenu" style="display:none;margin-top:8px">
   <button onclick="addMeeting('ok')">Успешно</button>
   <button onclick="addMeeting('bankReject')">Отказ банка</button>
   <button onclick="addMeeting('transfer')">Перенос</button>
+  <button onclick="addMeeting('ndz')">НДЗ</button>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -133,7 +216,12 @@ margin-bottom:4px;
 <button onclick="toggleFullStats()" id="statsBtn">
 Подробнее ▼
 </button>
+<button onclick="togglePlan()" id="planBtn">
+План на март 📊
+</button>
+<button onclick="copyDayReport()">Отчёт дня 📋</button>
 
+<div id="planBlock" style="display:none;margin-top:10px"></div>
 <div id="fullStats" style="display:none">
 
 <div id="fullStatsContent"></div>
@@ -184,6 +272,13 @@ Cross: <span id="crossIncome">0</span> ₽<br>
 /* ==== Данные и сохранение ====
    meetings — массив встреч
 */
+let androidPercentShort = 0
+let iosPercentShort = 0
+let transactionPercent = 0
+let ppiPercent = 0
+let bankOffers = 0
+let crossSales = 0
+
 let meetings=[]
 let cardsCollapsed=false
 
@@ -199,6 +294,91 @@ function load(){
 function toggleStatusMenu(){
   let menu=document.getElementById("statusMenu")
   menu.style.display = (menu.style.display==="none" || menu.style.display==="") ? "block" : "none"
+}
+function togglePlan(){
+
+let block=document.getElementById("planBlock")
+
+if(block.style.display==="none"){
+block.style.display="block"
+renderPlan()
+}else{
+block.style.display="none"
+}
+
+}
+function renderPlan(){
+
+let comboPlan=10
+let androidPlan=95
+let iosPlan=75
+let transactionPlan=93
+let ppiPlan=90
+
+function bar(value,plan){
+
+let percent=Math.min(value,100)
+
+let color="red"
+
+if(value>=plan) color="green"
+else if(value>=plan*0.8) color="yellow"
+
+return `
+<div class="planItem">
+${value}% / ${plan}%
+<div class="planBar">
+<div class="planFill ${color}" style="width:${percent}%"></div>
+</div>
+</div>
+`
+}
+
+let comboPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
+
+let html=`
+<b>❗ План на март</b><br><br>
+
+Комбо
+${bar(comboPercent,comboPlan)}
+
+МП Android
+${bar(androidPercentShort,androidPlan)}
+
+МП IOS
+${bar(iosPercentShort,iosPlan)}
+
+Транзакции
+${bar(transactionPercent,transactionPlan)}
+
+PPI
+${bar(ppiPercent,ppiPlan)}
+`
+
+document.getElementById("planBlock").innerHTML=html
+}
+function addScreenshot(event,i){
+
+let file=event.target.files[0]
+if(!file) return
+
+let reader=new FileReader()
+
+reader.onload=function(e){
+
+let reversed=[...meetings].reverse()
+
+reversed[i].screenshot=e.target.result
+
+meetings=reversed.reverse()
+
+save()
+render()
+
+}
+
+reader.readAsDataURL(file)
+
 }
 
 /* ---------- Рендер блока услуг (динамически) ---------- */
@@ -267,22 +447,34 @@ box.innerHTML+=`
     </div>
   `
 }
-function formatName(name){
+function formatName(name,status){
 
 if(!name) return ""
 
-if(name.toLowerCase().includes("orange")){
+let lower=name.toLowerCase()
 
+if(lower.includes("orange")){
 let clean=name.replace(/orange/gi,"").trim()
-
 return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
+}
 
+if(lower.includes("t0")){
+let clean=name.replace(/t0/gi,"").trim()
+return `<div class="tag-t0">T0</div><b>${clean}</b>`
+}
+
+if(status==="ndz"){
+return `<div class="tag-ndz">НДЗ</div><b>${name}</b>`
+}
+
+if(status==="bankReject"){
+return `<div class="tag-reject">ОТКАЗ БАНКА</div><b>${name}</b>`
 }
 
 return `<b>${name}</b>`
 
 }
-function copyReport(i){
+function copyReport(btn,i){
 
 let reversed=[...meetings].reverse()
 let m=reversed[i]
@@ -302,18 +494,22 @@ ${m.name}
 7. Кэш:
 8. А-чек: ${services.includes("alphaCheck") ? "+" : ""}
 9. Смарт: ${services.includes("alphaSmart") ? "+" : ""}
-11. Реф:
-12. Дети:
-13. Селфи:
-14. VOC: 5
-15. БС/ Инвесткопилка 0/0
-16. Пенсия
-17. Страховка
+
 `
 
 navigator.clipboard.writeText(text)
 
-alert("Текст скопирован")
+btn.innerHTML="✅"
+
+setTimeout(()=>{
+btn.innerHTML=`
+<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
+<rect x="9" y="9" width="13" height="13" rx="2"></rect>
+<rect x="2" y="2" width="13" height="13" rx="2"></rect>
+</svg>
+`
+},1000)
+
 }
 function toggleFullStats(){
 
@@ -426,16 +622,46 @@ function addMeeting(status){
   // важно: захватываем phoneType перед сохранением (исправлено)
 let phoneType=document.getElementById("phoneType")?.value || "ios"
 
+
 let bankOffer=document.getElementById("bankOffer")?.value || "no"
 let crossSale=document.getElementById("crossSale")?.value || "none"
 
 let comment=document.getElementById("comment").value
   let age=document.getElementById("age")?.value || "adult"
 
-  let serviceList=getSelectedServices()
-  let income=calculateIncome(serviceList)
+  let serviceList = status==="ndz" ? [] : getSelectedServices()
+let income = status==="ndz" ? 0 : calculateIncome(serviceList)
   let today = new Date().toLocaleDateString("ru-RU")
 
+  let file=document.getElementById("screenshot").files[0]
+let screenshot=""
+if(file){
+let reader=new FileReader()
+reader.onload=function(e){
+
+meetings.push({
+name,
+phone,
+type,
+age,
+phoneType,
+services:serviceList,
+status,
+comment,
+income,
+date:today,
+bankOffer,
+crossSale,
+screenshot:e.target.result
+})
+
+save()
+render()
+}
+
+reader.readAsDataURL(file)
+return
+}
   meetings.push({
     name,
     phone,
@@ -457,6 +683,8 @@ let comment=document.getElementById("comment").value
   document.getElementById("name").value=""
   document.getElementById("phone").value=""
   document.getElementById("comment").value=""
+  document.getElementById("screenshot").value=""
+  document.getElementById("statusMenu").style.display="none"
   render()
 }
 
@@ -464,6 +692,8 @@ let comment=document.getElementById("comment").value
 function transferMeeting(){
   let comment=document.getElementById("comment").value
   let name=document.getElementById("name").value
+  name = name.trim()
+  name = name.charAt(0).toUpperCase() + name.slice(1)
   if(!name){ alert("Введите ФИО"); return }
   let today = new Date().toLocaleDateString("ru-RU")
   meetings.push({ name, status:"transfer", income:0, comment, date: today })
@@ -494,14 +724,16 @@ function render(){
   let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
   // счётчики
-  let transfers=0, success=0, rejects=0
+ let transfers=0, success=0, rejects=0, ndz=0
   let kkCount=0, ppiCount=0
 
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
   let iosExists=0, androidExists=0
 
-  let advance=0, rest=0, servicesIncome=0, bankOffers=0, crossSales=0, crossIncome=0
+  let advance=0, rest=0, servicesIncome=0, crossIncome=0
+  bankOffers=0
+crossSales=0
   let serviceStats={}
 
   // показываем последние сверху — используем reversed копию
@@ -537,22 +769,44 @@ if(m.status === "ok" && m.phoneType==="android"){
     if(search && !text.includes(search)) return
 
     // статус: считаем отдельно success/transfer/reject
-    if(m.status==="transfer"){
-      transfers++
-    } else if(m.status==="bankReject"){
-      rejects++
-    } else {
-      success++
-    }
-
+  if(m.status==="transfer"){
+  transfers++
+}else if(m.status==="bankReject"){
+  rejects++
+}else if(m.status==="ndz"){
+  ndz++
+}else{
+  success++
+}
     // **ВАЖНО**: услуги (serviceStats) считаем для ВСЕХ встреч (включая переносы/отказы) — так ты просил
 if(m.status === "ok" && m.services){
-  m.services.forEach(s=>{
 
-    if(s==="alphaSmart" && m.age==="teen") return
+let isOrange = m.name && m.name.toLowerCase().includes("orange")
 
-    serviceStats[s] = (serviceStats[s] || 0) + 1
-  })
+m.services.forEach(s=>{
+
+// если ORANGE — считаем только МП
+if(isOrange){
+
+if(
+s==="mp_ios" ||
+s==="mp_android" ||
+s==="mp_ios_exists" ||
+s==="mp_android_exists"
+){
+serviceStats[s] = (serviceStats[s] || 0) + 1
+}
+
+return
+}
+
+// обычная логика
+if(s==="alphaSmart" && m.age==="teen") return
+
+serviceStats[s] = (serviceStats[s] || 0) + 1
+
+})
+
 }
 
     // Доходы считаем только для успешных (ok) — если нужно считать иначе, скажи
@@ -597,7 +851,7 @@ list.innerHTML += `
 <div class="card transfer">
 <input type="checkbox" class="clientSelect">
 <span class="card-date">${m.date || ""}</span>
-${formatName(m.name)}
+${formatName(m.name,m.status)}
 
 <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
 
@@ -614,21 +868,30 @@ list.innerHTML += `
 <div class="card ${m.status}">
 <input type="checkbox" class="clientSelect">
 <span class="card-date">${m.date || ""}</span>
-${formatName(m.name)}<br>${m.type || ""}<br>
+${formatName(m.name,m.status)}<br>${m.type || ""}<br>
 
 <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
   
 
 Телефон: ${m.phone || ""}<br>
 Услуги: ${serviceNames || '-'}<br>
-Статус: ${m.status==="bankReject" ? "отказ банка" : "успешно"}<br>
+Статус: ${
+m.status==="bankReject" ? "отказ банка" :
+m.status==="ndz" ? "НДЗ" :
+"успешно"
+}<br>
 ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
+${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
 
 ${m.type==="DC" ? `
 Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossSale==="none" ? "отказ клиента" : (m.crossSale==="cc" ? "Cross КК" : "Cross Комбо"))}<br>
 ` : ""}
-<button class="copyBtn" onclick="copyReport(${i})">
-<br>скопировать в буфер<br>
+<input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
+<button class="copyBtn" onclick="copyReport(this, ${i})">
+<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
+<rect x="9" y="9" width="13" height="13" rx="2"></rect>
+<rect x="2" y="2" width="13" height="13" rx="2"></rect>
+</svg>
 </button>
 </div>
 </div>
@@ -642,8 +905,9 @@ Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossS
   let transferPercent = total>0 ? Math.round(transfers/total*100) : 0
   let successPercent  = total>0 ? Math.round(success/total*100) : 0
   let rejectPercent   = total>0 ? Math.round(rejects/total*100) : 0
+  let ndzPercent = total>0 ? Math.round(ndz/total*100) : 0
   let crossPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
-  let ppiPercent = kkCount>0 ? Math.round(ppiCount/kkCount*100) : 0
+  ppiPercent = kkCount>0 ? Math.round(ppiCount/kkCount*100) : 0
 
   // MP проценты по платформе (посчитаны относительно всех клиентов этой платформы)
   
@@ -657,13 +921,13 @@ Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossS
   let totalIncome = advance + rest + servicesIncome + crossIncome
 
   let activationPercent = total>0 ? Math.round((serviceStats.activation || 0)/total*100) : 0
-let transactionPercent = total>0 ? Math.round((serviceStats.transaction || 0)/total*100) : 0
+transactionPercent = total>0 ? Math.round((serviceStats.transaction || 0)/total*100) : 0
 let cpPercent = total>0 ? Math.round((serviceStats.cp || 0)/total*100) : 0
 let jkuPercent = total>0 ? Math.round((serviceStats.jku || 0)/total*100) : 0
 let smartPercent = total>0 ? Math.round((serviceStats.alphaSmart || 0)/total*100) : 0
 let checkPercent = total>0 ? Math.round((serviceStats.alphaCheck || 0)/total*100) : 0
-let iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
-let androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
+iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
+androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
 
   // вывод в DOM
 
@@ -706,21 +970,28 @@ mp_android_exists:"МП Android уже было"
   }
 
   // вставляем услуги
-  document.getElementById("shortStats").innerHTML = `
-<b>% успешных:</b> ${successPercent}%<br>
-<b>% переносов:</b> ${transferPercent}%<br>
-<b>% отказов:</b> ${rejectPercent}%<br><br>
+document.getElementById("shortStats").innerHTML = `
 
-Активации: ${activationPercent}%<br>
-Транзакции: ${transactionPercent}%<br>
-ЦП: ${cpPercent}%<br>
-ЖКУ: ${jkuPercent}%<br>
-АльфаСмарт: ${smartPercent}%<br>
-АльфаЧек: ${checkPercent}%<br><br>
+<div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
+<div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
+<div class="statsRow"><span>% НДЗ</span><span>${ndzPercent}% (${ndz})</span></div>
+<div class="statsRow"><span>% отказов</span><span>${rejectPercent}% (${rejects})</span></div>
 
-МП IOS: ${iosPercentShort}%<br>
-МП Android: ${androidPercentShort}%<br>
-PPI: ${ppiPercent}%<br>
+<br>
+
+<div class="statsRow"><span>Активации</span><span>${activationPercent}%</span></div>
+<div class="statsRow"><span>Транзакции</span><span>${transactionPercent}%</span></div>
+<div class="statsRow"><span>ЦП</span><span>${cpPercent}%</span></div>
+<div class="statsRow"><span>ЖКУ</span><span>${jkuPercent}%</span></div>
+<div class="statsRow"><span>АльфаСмарт</span><span>${smartPercent}%</span></div>
+<div class="statsRow"><span>АльфаЧек</span><span>${checkPercent}%</span></div>
+
+<br>
+
+<div class="statsRow"><span>МП IOS</span><span>${iosPercentShort}%</span></div>
+<div class="statsRow"><span>МП Android</span><span>${androidPercentShort}%</span></div>
+<div class="statsRow"><span>PPI</span><span>${ppiPercent}%</span></div>
+
 `
 document.getElementById("fullStatsContent").innerHTML = `
 Всего встреч: ${total}<br>
@@ -737,12 +1008,6 @@ ${statsHTML}
 
 <br>
 
-<b>Доход</b><br>
-Аванс: ${advance} ₽<br>
-Остаток: ${rest} ₽<br>
-Услуги: ${servicesIncome} ₽<br>
-Cross: ${crossIncome} ₽<br>
-<b>Итого: ${totalIncome} ₽</b>
 
 <br><br>
 
@@ -801,6 +1066,74 @@ renderServices()
 updateOfferBlock()
 updateCrossBlock()
 render()
+function copyDayReport(){
+
+let today=new Date().toLocaleDateString("ru-RU")
+
+let todayMeetings=meetings.filter(m=>m.date===today)
+
+let assigned=todayMeetings.length
+let success=0
+
+let activation=0
+let cp=0
+let smart=0
+
+let iosExists=0
+let iosInstall=0
+
+let crossApproved=0
+
+todayMeetings.forEach(m=>{
+
+if(m.status==="ok"){
+
+success++
+
+let services=m.services || []
+
+if(services.includes("activation")) activation++
+if(services.includes("cp")) cp++
+if(services.includes("alphaSmart")) smart++
+
+if(services.includes("mp_ios_exists")) iosExists++
+if(services.includes("mp_ios")) iosInstall++
+
+if(m.crossSale==="combo") crossApproved++
+
+}
+
+})
+
+let voc=Math.round(success*0.3)
+
+let text=`${today}
+Митин О.Р
+
+1. Назначено встреч ${assigned}
+2. Проведено ${success}
+3. Актив ${activation}
+4. Цп ${cp}
+5. Комбо одобрено/выдано ${crossApproved}/${crossApproved}
+6. Комбо транзакции 0
+7. Кросс Дк 0
+8. Кросс Дк транзакции 0
+9. БС/Инвест 0
+10. Смарт ${smart}
+11. Короб. Стах. 0
+12. Детские 0
+13. Селфи 0
+14. Выдано Дк/ транзакции Дк 0/0
+15. Выдано КК/транзакцииКк 0/0
+16. IOS было/установил ${iosExists}/${iosInstall}
+17. VOC ${voc}
+`
+
+navigator.clipboard.writeText(text)
+
+alert("Отчёт за день скопирован")
+
+}
 </script>
 </body>
 </html>
