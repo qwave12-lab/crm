@@ -757,18 +757,15 @@ function selectAll(){
 }
 function loadFromSheet(){
 
+if(meetings.length > 0){
+return
+}
+
 fetch("https://script.google.com/macros/s/AKfycbxYR3Rr2aRZhuFzsEhBSqt4nImrYJjqKYNbsgnQ2Wy5HoReE5QzaU_LNRkTET_IPQFpsQ/exec")
 .then(res=>res.json())
 .then(data=>{
 
-meetings = []
-
-meetings = []
-
 data.forEach(item=>{
-if(isDuplicate(item.phone,item.date)){
-return
-}
 
 meetings.push({
 name:item.name,
