@@ -319,10 +319,10 @@ block.style.display="none"
 }
 
 }
-function isDuplicate(phone,date){
+function isDuplicate(phone){
 
 return meetings.some(m =>
-m.phone === phone && m.date === date
+m.phone === phone
 )
 
 }
@@ -690,10 +690,10 @@ reader.readAsDataURL(file)
 return
 }
 
-if(isDuplicate(phone,today)){
-alert("Этот клиент уже добавлен сегодня")
+if(isDuplicate(phone)){
+alert("Такой номер уже есть в CRM")
 return
-}
+
   meetings.push({
     name,
     phone,
