@@ -321,6 +321,8 @@ block.style.display="none"
 }
 function isDuplicate(phone){
 
+if(!phone) return false
+
 return meetings.some(m =>
 m.phone === phone
 )
