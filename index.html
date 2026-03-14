@@ -637,6 +637,10 @@ function addMeeting(status){
   if(!name){ alert("Введите ФИО"); return }
 
   let phone=document.getElementById("phone").value
+  if(isDuplicate(phone)){
+alert("Такой номер уже есть в CRM")
+return
+}
   let type=document.getElementById("type").value
   // важно: захватываем phoneType перед сохранением (исправлено)
 let phoneType=document.getElementById("phoneType")?.value || "ios"
@@ -690,10 +694,7 @@ reader.readAsDataURL(file)
 return
 }
 
-if(isDuplicate(phone)){
-alert("Такой номер уже есть в CRM")
-return
-}
+
 
 meetings.push({
 name,
