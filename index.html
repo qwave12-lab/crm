@@ -299,12 +299,13 @@ function sendToSheet(data){
 
 fetch("https://script.google.com/macros/s/AKfycbxYR3Rr2aRZhuFzsEhBSqt4nImrYJjqKYNbsgnQ2Wy5HoReE5QzaU_LNRkTET_IPQFpsQ/exec",{
 method:"POST",
-mode:"no-cors",
 headers:{
 "Content-Type":"application/json"
 },
 body:JSON.stringify(data)
 })
+.then(r=>console.log("Отправлено в Sheets"))
+.catch(e=>console.log("Ошибка отправки",e))
 
 }
 function togglePlan(){
