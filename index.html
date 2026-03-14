@@ -778,7 +778,7 @@ if(m.status === "ok" && m.phoneType==="android"){
 }else{
   success++
 }
-    // **ВАЖНО**: услуги (serviceStats) считаем для ВСЕХ встреч (включая переносы/отказы) — так ты просил
+// услуги считаются ТОЛЬКО для успешных встреч
 if(m.status === "ok" && m.services){
 
 let isOrange = m.name && m.name.toLowerCase().includes("orange")
@@ -965,7 +965,7 @@ mp_android_exists:"МП Android уже было"
   for(let s in serviceStats){
     let title = names[s] || s
     // процент от всех встреч (пользователь просил учитывать услуги на переносах/отказах)
-    let perc = total>0 ? Math.round(serviceStats[s]/total*100) : 0
+    let perc = success>0 ? Math.round(serviceStats[s]/success*100) : 0
     statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
   }
 
