@@ -693,21 +693,22 @@ return
 if(isDuplicate(phone)){
 alert("Такой номер уже есть в CRM")
 return
+}
 
-  meetings.push({
-    name,
-    phone,
-    type,
-     age,
-    phoneType,          // сохраняем тип телефона
-    services:serviceList,
-    status:status,      // 'ok' | 'bankReject' | 'transfer'
-    comment,
-    income,
-    date: today,
-    bankOffer,
-    crossSale
-  })
+meetings.push({
+name,
+phone,
+type,
+age,
+phoneType,
+services:serviceList,
+status:status,
+comment,
+income,
+date:today,
+bankOffer,
+crossSale
+})
 sendToSheet({
 date: today,
 name: name,
