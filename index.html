@@ -295,6 +295,18 @@ function toggleStatusMenu(){
   let menu=document.getElementById("statusMenu")
   menu.style.display = (menu.style.display==="none" || menu.style.display==="") ? "block" : "none"
 }
+function sendToSheet(data){
+
+fetch("https://script.google.com/macros/s/AKfycbxYR3Rr2aRZhuFzsEhBSqt4nImrYJjqKYNbsgnQ2Wy5HoReE5QzaU_LNRkTET_IPQFpsQ/exec",{
+method:"POST",
+mode:"no-cors",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(data)
+})
+
+}
 function togglePlan(){
 
 let block=document.getElementById("planBlock")
@@ -305,6 +317,13 @@ renderPlan()
 }else{
 block.style.display="none"
 }
+
+}
+function isDuplicate(phone,date){
+
+return meetings.some(m =>
+m.phone === phone && m.date === date
+)
 
 }
 function renderPlan(){
@@ -654,12 +673,25 @@ bankOffer,
 crossSale,
 screenshot:e.target.result
 })
-
+sendToSheet({
+date: today,
+name: name,
+phone: phone,
+type: type,
+services: serviceList.join(", "),
+status: status,
+comment: comment
+})
 save()
 render()
 }
 
 reader.readAsDataURL(file)
+return
+}
+
+if(isDuplicate(phone,today)){
+alert("Этот клиент уже добавлен сегодня")
 return
 }
   meetings.push({
@@ -675,9 +707,16 @@ return
     date: today,
     bankOffer,
     crossSale
-   
   })
-
+sendToSheet({
+date: today,
+name: name,
+phone: phone,
+type: type,
+services: serviceList.join(", "),
+status: status,
+comment: comment
+})
   save()
   // очистка формы (удобство)
   document.getElementById("name").value=""
@@ -715,6 +754,37 @@ function deleteSelected(){
 function selectAll(){
   let checks=document.querySelectorAll(".clientSelect")
   checks.forEach(c=>c.checked=true)
+}
+function loadFromSheet(){
+
+fetch("https://script.google.com/macros/s/AKfycbxYR3Rr2aRZhuFzsEhBSqt4nImrYJjqKYNbsgnQ2Wy5HoReE5QzaU_LNRkTET_IPQFpsQ/exec")
+.then(res=>res.json())
+.then(data=>{
+
+meetings = []
+
+data.forEach(item=>{
+if(isDuplicate(item.phone,item.date)){
+return
+}
+
+meetings.push({
+name:item.name,
+phone:item.phone,
+type:item.type,
+services:item.services ? item.services.split(", ") : [],
+status:item.status,
+comment:item.comment,
+date:item.date
+})
+
+})
+
+save()
+render()
+
+})
+
 }
 
 /* ==== Рендер списка и статистики ==== */
@@ -1066,6 +1136,7 @@ renderServices()
 updateOfferBlock()
 updateCrossBlock()
 render()
+loadFromSheet()
 function copyDayReport(){
 
 let today=new Date().toLocaleDateString("ru-RU")
