@@ -795,7 +795,7 @@ type:item.type,
 services:item.services ? item.services.split(",") : [],
 status:item.status ? item.status.toLowerCase() : "",
 comment:item.comment,
-date:item.date,
+date:new Date(item.date).toLocaleDateString("ru-RU"),
 
 phoneType:item.phoneType || "ios",
 age:item.age || "adult",
