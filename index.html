@@ -739,7 +739,6 @@ return
 }
 
 
-
 let id = Date.now()
 
 meetings.push({
@@ -845,218 +844,100 @@ render()
 
 }
 
-/* ==== Рендер списка и статистики ==== */
+/* ==== ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА ==== */
 function render(){
   let list=document.getElementById("meetings")
   list.innerHTML=""
   let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
-  // счётчики
-let transfers=0, success=0, rejects=0, ndz=0
-let kkCount=0, ppiCount=0
-let mpCount=0, jkuCount=0
+  // СБРОС ВСЕХ СЧЁТЧИКОВ
+  let transfers=0, success=0, rejects=0, ndz=0
+  let kkCount=0, ppiCount=0
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
   let iosExists=0, androidExists=0
-// Orange статистика
   let orangeTotal = 0
   let advance=0, rest=0, servicesIncome=0, crossIncome=0
   bankOffers=0
-crossSales=0
+  crossSales=0
   let serviceStats={}
 
   // показываем последние сверху — используем reversed копию
   let reversed=[...meetings].reverse()
+  
+  // ===== СБОР СТАТИСТИКИ (ОДИН ПРОХОД) =====
   reversed.forEach((m,i)=>{
-    if(m.services){
-m.services.forEach(s=>{
-serviceStats[s]=(serviceStats[s]||0)+1
-})
-}
-    // подсчёт MP по типу телефона
-if(m.status === "ok" && m.phoneType==="ios"){
-  iosTotal++
-  if(m.services && m.services.includes("mp_ios")) iosInstalled++
-  if(m.services && m.services.includes("mp_ios_exists")) iosExists++
-}
+    // Статусы
+    if(m.status === "transfer") {
+      transfers++
+    }
+    else if(m.status === "bankreject") {
+      rejects++
+    }
+    else if(m.status === "ndz") {
+      ndz++
+    }
+    else if(m.status === "ok") {
+      success++
+    }
+    
+    // Orange проверка
+    let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
+    if(isOrange) {
+      orangeTotal++
+    }
 
-if(m.status === "ok" && m.phoneType==="android"){
-  androidTotal++
-  if(m.services && m.services.includes("mp_android")) androidInstalled++
-  if(m.services && m.services.includes("mp_android_exists")) androidExists++
-}
-
-   
-
-    // фильтр поиска (по имени/дате)
-  
-
-// Считаем статусы
-if(m.status === "transfer") {
-  transfers++  // ТОЛЬКО увеличиваем счетчик переносов
-}
-else if(m.status === "bankreject") {
-  rejects++
-}
-else if(m.status === "ndz") {
-  ndz++
-}
-else if(m.status === "ok") {
-  success++
-}
-
-// Для успешных встреч отдельно проверяем Orange (но ничего не делаем)
-if(m.status === "ok"){
-  let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-  // здесь можно будет добавить логику для Orange позже
-}
-// ===== ORANGE ЛОГИКА =====
-let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-
-// Считаем Orange отдельно
-if(isOrange) {
-  orangeTotal++
-}
-
-// фильтр поиска
-let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
-if(search && !text.includes(search)) return
-
-// Для обычных клиентов считаем статистику
-if(!isOrange) {
-if(m.status === "ok" && m.services) {
-  m.services.forEach(s => {
-    serviceStats[s] = (serviceStats[s] || 0) + 1
-      if(s === "mp_ios" || s === "mp_android" || s === "mp_ios_exists" || s === "mp_android_exists") {
-        mpCount++
+    // Статистика ТОЛЬКО для обычных клиентов и ТОЛЬКО для успешных
+    if(!isOrange && m.status === "ok") {
+      // Считаем услуги
+      if(m.services) {
+        m.services.forEach(s => {
+          serviceStats[s] = (serviceStats[s] || 0) + 1
+        })
       }
-      if(s === "jku") jkuCount++
-    })
-  }
-  
-  // Считаем iOS/Android
-  if(m.status === "ok") {
-    if(m.phoneType === "ios") {
-      iosTotal++
-      if(m.services && m.services.includes("mp_ios")) iosInstalled++
-      if(m.services && m.services.includes("mp_ios_exists")) iosExists++
-    }
-    if(m.phoneType === "android") {
-      androidTotal++
-      if(m.services && m.services.includes("mp_android")) androidInstalled++
-      if(m.services && m.services.includes("mp_android_exists")) androidExists++
-    }
-  }
-  
-  // PPI статистика
-  if((m.type === "СС" || m.type === "СС1" || m.type === "СС2") && m.status === "ok") {
-    kkCount++
-    if(m.services && m.services.includes("ppi")) ppiCount++
-  }
-  
-  // Cross статистика
-  if(m.type === "DC" && m.bankOffer === "yes" && m.status === "ok") {
-    bankOffers++
-    if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
-  }
-}
-
-    // Доходы считаем только для успешных (ok) — если нужно считать иначе, скажи
-if(m.status==="ok"){
-
-  advance += 300
-  rest += 100
-
-  servicesIncome += Number(m.income || 0)
-
-  if(m.type==="DC" && m.bankOffer==="yes"){
-    if(m.crossSale==="cc" || m.crossSale==="combo"){
-      crossIncome += 350
-      rest += 350
-    }
-  }
-
-}
-
-    // формируем названия услуг для карточки
-    let serviceNames = (m.services || []).map(s => {
-      if(s === "mp_ios") return "МП IOS"
-      if(s === "mp_android") return "МП Android"
-    if(s === "mp_ios_exists") return "МП IOS уже было"
-if(s === "mp_android_exists") return "МП Android уже было"
-      const names = {
-        
-        activation:"Активация",
-        transaction:"Транзакция",
-        alphaSmart:"АльфаСмарт",
-        alphaCheck:"АльфаЧек",
-        cp:"ЦП",
-        jku:"ЖКУ",
-        ppi:"PPI"
+      
+      // iOS статистика
+      if(m.phoneType === "ios") {
+        iosTotal++
+        if(m.services && m.services.includes("mp_ios")) iosInstalled++
+        if(m.services && m.services.includes("mp_ios_exists")) iosExists++
       }
-      return names[s] || s
-    }).join(", ")
+      // Android статистика
+      if(m.phoneType === "android") {
+        androidTotal++
+        if(m.services && m.services.includes("mp_android")) androidInstalled++
+        if(m.services && m.services.includes("mp_android_exists")) androidExists++
+      }
+      
+      // PPI статистика
+      if(m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+        kkCount++
+        if(m.services && m.services.includes("ppi")) ppiCount++
+      }
+      
+      // Cross статистика
+      if(m.type === "DC" && m.bankOffer === "yes") {
+        bankOffers++
+        if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
+      }
+    }
 
-if(m.status==="transfer"){
+    // Доходы (только успешные, ВСЕ клиенты включая Orange)
+    if(m.status==="ok"){
+      advance += 300
+      rest += 100
+      servicesIncome += Number(m.income || 0)
+      
+      if(m.type==="DC" && m.bankOffer==="yes"){
+        if(m.crossSale==="cc" || m.crossSale==="combo"){
+          crossIncome += 350
+          rest += 350
+        }
+      }
+    }
+  })
 
-list.innerHTML += `
-<div class="card transfer">
-<input type="checkbox" class="clientSelect">
-<span class="card-date">${m.date || ""}</span>
-${formatName(m.name,m.status)}
-
-<div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
-
-<b>Комментарий:</b> ${m.comment || "-"}<br>
-Статус: перенос
-
-<button onclick="deleteOne(${i})">🗑 Удалить</button>
-
-</div>
-</div>
-`
-}else{
-
-list.innerHTML += `
-<div class="card ${m.status}">
-<input type="checkbox" class="clientSelect">
-<span class="card-date">${m.date || ""}</span>
-${formatName(m.name,m.status)}<br>${m.type || ""}<br>
-
-<div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
-  
-
-Телефон: ${m.phone || ""}<br>
-Услуги: ${serviceNames || '-'}<br>
-Статус: ${
-m.status==="bankreject" ? "отказ банка" :
-m.status==="ndz" ? "НДЗ" :
-"успешно"
-}}<br>
-${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
-${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
-
-${m.type==="DC" ? `
-Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossSale==="none" ? "отказ клиента" : (m.crossSale==="cc" ? "Cross КК" : "Cross Комбо"))}<br>
-` : ""}
-<input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
-<button class="copyBtn" onclick="copyReport(this, ${i})">
-<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
-<rect x="9" y="9" width="13" height="13" rx="2"></rect>
-<rect x="2" y="2" width="13" height="13" rx="2"></rect>
-</svg>
-</button>
-
-
-<button onclick="deleteOne(${i})">🗑 Удалить</button>
-</div>
-</div>
-`
-
-}
-  }) // end foreach
-
-  // проценты
+  // ===== РАСЧЁТ ПРОЦЕНТОВ =====
   let total = meetings.length
   let transferPercent = total>0 ? Math.round(transfers/total*100) : 0
   let successPercent  = total>0 ? Math.round(success/total*100) : 0
@@ -1065,34 +946,24 @@ Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossS
   let crossPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
   ppiPercent = kkCount>0 ? Math.round(ppiCount/kkCount*100) : 0
 
-  // MP проценты по платформе (посчитаны относительно всех клиентов этой платформы)
+  // Проценты услуг ТОЛЬКО от успешных встреч
+  let activationPercent = success>0 ? Math.round((serviceStats.activation || 0)/success*100) : 0
+  transactionPercent = success>0 ? Math.round((serviceStats.transaction || 0)/success*100) : 0
+  let cpPercent = success>0 ? Math.round((serviceStats.cp || 0)/success*100) : 0
+  let jkuPercent = success>0 ? Math.round((serviceStats.jku || 0)/success*100) : 0
+  let smartPercent = success>0 ? Math.round((serviceStats.alphaSmart || 0)/success*100) : 0
+  let checkPercent = success>0 ? Math.round((serviceStats.alphaCheck || 0)/success*100) : 0
   
-  let iosSuccess = iosInstalled + iosExists
-  let androidSuccess = androidInstalled + androidExists
+  // МП проценты
+  iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
+  androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
 
-  let iosPercent = iosTotal>0 ? Math.round(iosSuccess/iosTotal*100) : 0
-  let androidPercent = androidTotal>0 ? Math.round(androidSuccess/androidTotal*100) : 0
-  
-
-  let totalIncome = advance + rest + servicesIncome + crossIncome
-
-  let activationPercent = total>0 ? Math.round((serviceStats.activation || 0)/total*100) : 0
-transactionPercent = total>0 ? Math.round((serviceStats.transaction || 0)/total*100) : 0
-let cpPercent = total>0 ? Math.round((serviceStats.cp || 0)/total*100) : 0
-let jkuPercent = total>0 ? Math.round((serviceStats.jku || 0)/total*100) : 0
-let smartPercent = total>0 ? Math.round((serviceStats.alphaSmart || 0)/total*100) : 0
-let checkPercent = total>0 ? Math.round((serviceStats.alphaCheck || 0)/total*100) : 0
-iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
-androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
-
-  // вывод в DOM
-
-
+  // ===== ОБНОВЛЕНИЕ DOM =====
   document.getElementById("advance").innerText = advance
   document.getElementById("rest").innerText = rest
   document.getElementById("servicesIncome").innerText = servicesIncome
   document.getElementById("crossIncome").innerText = crossIncome
-  document.getElementById("income").innerText = totalIncome
+  document.getElementById("income").innerText = advance + rest + servicesIncome + crossIncome
 
   document.getElementById("bankOffers").innerText = bankOffers
   document.getElementById("crossSales").innerText = crossSales
@@ -1102,7 +973,7 @@ androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExist
   document.getElementById("ppiCount").innerText = ppiCount
   document.getElementById("ppiPercent").innerText = ppiPercent
 
-  // составляем общую статистику по услугам
+  // Статистика услуг для отображения
   const names = {
     activation:"Активация",
     transaction:"Транзакция",
@@ -1114,95 +985,153 @@ androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExist
     mp_ios:"МП IOS",
     mp_android:"МП Android",
     mp_ios_exists:"МП IOS уже было",
-mp_android_exists:"МП Android уже было"
+    mp_android_exists:"МП Android уже было"
   }
 
   let statsHTML = ""
   for(let s in serviceStats){
     let title = names[s] || s
-    // процент от всех встреч (пользователь просил учитывать услуги на переносах/отказах)
     let perc = success>0 ? Math.round(serviceStats[s]/success*100) : 0
     statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
   }
 
-  // вставляем услуги
-document.getElementById("shortStats").innerHTML = `
-<div class="statsRow"><span>🍊 Orange встреч</span><span>${orangeTotal}</span></div>
-<br>
+  // Краткая статистика
+  document.getElementById("shortStats").innerHTML = `
+    <div class="statsRow"><span>🍊 Orange встреч</span><span>${orangeTotal}</span></div>
+    <br>
+    <div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
+    <div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
+    <div class="statsRow"><span>% НДЗ</span><span>${ndzPercent}% (${ndz})</span></div>
+    <div class="statsRow"><span>% отказов</span><span>${rejectPercent}% (${rejects})</span></div>
+    <br>
+    <b>УСЛУГИ</b><br>
+    <div class="statsRow"><span>Активации</span><span>${activationPercent}%</span></div>
+    <div class="statsRow"><span>Транзакции</span><span>${transactionPercent}%</span></div>
+    <div class="statsRow"><span>ЦП</span><span>${cpPercent}%</span></div>
+    <div class="statsRow"><span>ЖКУ</span><span>${jkuPercent}%</span></div>
+    <div class="statsRow"><span>АльфаСмарт</span><span>${smartPercent}%</span></div>
+    <div class="statsRow"><span>АльфаЧек</span><span>${checkPercent}%</span></div>
+    <br>
+    <b>МОБИЛЬНОЕ ПРИЛОЖЕНИЕ</b><br>
+    <div class="statsRow"><span>МП IOS</span><span>${iosPercentShort}%</span></div>
+    <div class="statsRow"><span>МП Android</span><span>${androidPercentShort}%</span></div>
+    <div class="statsRow"><span>PPI</span><span>${ppiPercent}%</span></div>
+  `
 
-<div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
-<div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
-<div class="statsRow"><span>% НДЗ</span><span>${ndzPercent}% (${ndz})</span></div>
-<div class="statsRow"><span>% отказов</span><span>${rejectPercent}% (${rejects})</span></div>
-
-<br>
-<b>УСЛУГИ</b><br>
-<div class="statsRow"><span>Активации</span><span>${activationPercent}%</span></div>
-<div class="statsRow"><span>Транзакции</span><span>${transactionPercent}%</span></div>
-<div class="statsRow"><span>ЦП</span><span>${cpPercent}%</span></div>
-<div class="statsRow"><span>ЖКУ</span><span>${jkuPercent}%</span></div>
-<div class="statsRow"><span>АльфаСмарт</span><span>${smartPercent}%</span></div>
-<div class="statsRow"><span>АльфаЧек</span><span>${checkPercent}%</span></div>
-
-<br>
-<b>МОБИЛЬНОЕ ПРИЛОЖЕНИЕ</b><br>
-<div class="statsRow"><span>МП IOS</span><span>${iosPercentShort}%</span></div>
-<div class="statsRow"><span>МП Android</span><span>${androidPercentShort}%</span></div>
-<div class="statsRow"><span>PPI</span><span>${ppiPercent}%</span></div>
-`
-document.getElementById("fullStatsContent").innerHTML = `
-Всего встреч: ${total}<br>
-Успешные (ok): ${success}<br>
-Переносы: ${transfers}<br>
-Отказы банка: ${rejects}<br>
-
-% успешных: ${successPercent}%<br>
-% переносов: ${transferPercent}%<br>
-% отказов: ${rejectPercent}%<br><br>
-
-<b>Статистика услуг</b><br>
-${statsHTML}
-
-<br>
-
-
-<br><br>
-
-<b>PPI статистика</b><br>
-Кредитных карт: ${kkCount}<br>
-PPI подключено: ${ppiCount}<br>
-PPI %: ${ppiPercent}%<br>
-
-<b>Cross статистика</b><br>
-Предложений банка: ${bankOffers}<br>
-Продано Cross: ${crossSales}<br>
-Конверсия: ${crossPercent}%
-`
+  // Полная статистика
+  document.getElementById("fullStatsContent").innerHTML = `
+    Всего встреч: ${total}<br>
+    Успешные (ok): ${success}<br>
+    Переносы: ${transfers}<br>
+    Отказы банка: ${rejects}<br>
+    НДЗ: ${ndz}<br>
+    % успешных: ${successPercent}%<br>
+    % переносов: ${transferPercent}%<br>
+    % отказов: ${rejectPercent}%<br>
+    % НДЗ: ${ndzPercent}%<br><br>
+    <b>Статистика услуг</b><br>
+    ${statsHTML}
+    <br><br>
+    <b>PPI статистика</b><br>
+    Кредитных карт: ${kkCount}<br>
+    PPI подключено: ${ppiCount}<br>
+    PPI %: ${ppiPercent}%<br>
+    <b>Cross статистика</b><br>
+    Предложений банка: ${bankOffers}<br>
+    Продано Cross: ${crossSales}<br>
+    Конверсия: ${crossPercent}%
+  `
 
   // MP подробная статистика
   let iosNot = iosTotal - iosInstalled - iosExists
   let androidNot = androidTotal - androidInstalled - androidExists
 
-document.getElementById("fullStatsContent").innerHTML +=
-`<br><b>МП статистика</b><br>
+  document.getElementById("fullStatsContent").innerHTML +=
+    `<br><b>МП статистика</b><br>
+    <b>IOS</b><br>
+    всего: ${iosTotal}<br>
+    установил: ${iosInstalled}<br>
+    не установил: ${iosNot}<br>
+    уже было: ${iosExists}<br>
+    конверсия: ${iosPercentShort}%<br><br>
+    <b>Android</b><br>
+    всего: ${androidTotal}<br>
+    установил: ${androidInstalled}<br>
+    не установил: ${androidNot}<br>
+    уже было: ${androidExists}<br>
+    конверсия: ${androidPercentShort}%<br>
+  `
 
-<b>IOS</b><br>
-всего: ${iosTotal}<br>
-установил: ${iosInstalled}<br>
-не установил: ${iosTotal - iosInstalled - iosExists}<br>
-уже было: ${iosExists}<br>
-конверсия: ${iosPercent}%<br><br>
+  // ===== РЕНДЕРИМ КАРТОЧКИ (с фильтром поиска) =====
+  reversed.forEach((m,i)=>{
+    let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
+    if(search && !text.includes(search)) return
 
-<b>Android</b><br>
-всего: ${androidTotal}<br>
-установил: ${androidInstalled}<br>
-не установил: ${androidTotal - androidInstalled - androidExists}<br>
-уже было: ${androidExists}<br>
-конверсия: ${androidPercent}%<br>
-`
+    // формируем названия услуг для карточки
+    let serviceNames = (m.services || []).map(s => {
+      if(s === "mp_ios") return "МП IOS"
+      if(s === "mp_android") return "МП Android"
+      if(s === "mp_ios_exists") return "МП IOS уже было"
+      if(s === "mp_android_exists") return "МП Android уже было"
+      const names = {
+        activation:"Активация",
+        transaction:"Транзакция",
+        alphaSmart:"АльфаСмарт",
+        alphaCheck:"АльфаЧек",
+        cp:"ЦП",
+        jku:"ЖКУ",
+        ppi:"PPI"
+      }
+      return names[s] || s
+    }).join(", ")
 
+    if(m.status==="transfer"){
+      list.innerHTML += `
+        <div class="card transfer">
+          <input type="checkbox" class="clientSelect">
+          <span class="card-date">${m.date || ""}</span>
+          ${formatName(m.name,m.status)}
+          <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
+            <b>Комментарий:</b> ${m.comment || "-"}<br>
+            Статус: перенос
+            <button onclick="deleteOne(${i})">🗑 Удалить</button>
+          </div>
+        </div>
+      `
+    } else {
+      list.innerHTML += `
+        <div class="card ${m.status}">
+          <input type="checkbox" class="clientSelect">
+          <span class="card-date">${m.date || ""}</span>
+          ${formatName(m.name,m.status)}<br>${m.type || ""}<br>
+          <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
+            Телефон: ${m.phone || ""}<br>
+            Услуги: ${serviceNames || '-'}<br>
+            Статус: ${
+              m.status==="bankreject" ? "отказ банка" :
+              m.status==="ndz" ? "НДЗ" :
+              "успешно"
+            }<br>
+            ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
+            ${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
+            ${m.type==="DC" ? `
+              Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossSale==="none" ? "отказ клиента" : (m.crossSale==="cc" ? "Cross КК" : "Cross Комбо"))}<br>
+            ` : ""}
+            <input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
+            <button class="copyBtn" onclick="copyReport(this, ${i})">
+              <svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                <rect x="2" y="2" width="13" height="13" rx="2"></rect>
+              </svg>
+            </button>
+            <button onclick="deleteOne(${i})">🗑 Удалить</button>
+          </div>
+        </div>
+      `
+    }
+  })
 
-  // кнопки/скрытие списка
+  // Управление сворачиванием
   let btn=document.getElementById("toggleBtn")
   let info=document.getElementById("collapsedInfo")
   if(cardsCollapsed){
