@@ -852,7 +852,8 @@ let mpCount=0, jkuCount=0
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
   let iosExists=0, androidExists=0
-
+// Orange статистика
+  let orangeTotal = 0
   let advance=0, rest=0, servicesIncome=0, crossIncome=0
   bankOffers=0
 crossSales=0
@@ -911,48 +912,59 @@ if(m.status === "ok"){
 
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 
-if(isOrange){
 
-if(m.services){
-
-if(m.services.includes("mp_ios") || m.services.includes("mp_android")){
-mpCount++
-}
-
-if(m.services.includes("mp_ios_exists") || m.services.includes("mp_android_exists")){
-mpCount++
-}
-
-if(!m.services.includes("mp_ios") &&
-   !m.services.includes("mp_android") &&
-   !m.services.includes("mp_ios_exists") &&
-   !m.services.includes("mp_android_exists")){
-mpCount--
-}
 
 }
+// ===== ORANGE ЛОГИКА =====
+let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 
-}else{
-
-if(m.services){
-m.services.forEach(s=>{
-
-if(s==="mp_ios" || s==="mp_android") mpCount++
-if(s==="mp_ios_exists" || s==="mp_android_exists") mpCount++
-
-if(s==="jku") jkuCount++
-
-
-})
+// Считаем Orange отдельно
+if(isOrange) {
+  orangeTotal++
 }
 
-}
-
-}
 // фильтр поиска
 let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
 if(search && !text.includes(search)) return
 
+// Для обычных клиентов считаем статистику
+if(!isOrange) {
+  if(m.status === "ok" && m.services) {
+    m.services.forEach(s => {
+      serviceStats[s] = (serviceStats[s] || 0) + 1
+      if(s === "mp_ios" || s === "mp_android" || s === "mp_ios_exists" || s === "mp_android_exists") {
+        mpCount++
+      }
+      if(s === "jku") jkuCount++
+    })
+  }
+  
+  // Считаем iOS/Android
+  if(m.status === "ok") {
+    if(m.phoneType === "ios") {
+      iosTotal++
+      if(m.services && m.services.includes("mp_ios")) iosInstalled++
+      if(m.services && m.services.includes("mp_ios_exists")) iosExists++
+    }
+    if(m.phoneType === "android") {
+      androidTotal++
+      if(m.services && m.services.includes("mp_android")) androidInstalled++
+      if(m.services && m.services.includes("mp_android_exists")) androidExists++
+    }
+  }
+  
+  // PPI статистика
+  if((m.type === "СС" || m.type === "СС1" || m.type === "СС2") && m.status === "ok") {
+    kkCount++
+    if(m.services && m.services.includes("ppi")) ppiCount++
+  }
+  
+  // Cross статистика
+  if(m.type === "DC" && m.bankOffer === "yes" && m.status === "ok") {
+    bankOffers++
+    if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
+  }
+}
 
     // Доходы считаем только для успешных (ok) — если нужно считать иначе, скажи
 if(m.status==="ok"){
@@ -1120,6 +1132,8 @@ mp_android_exists:"МП Android уже было"
 
   // вставляем услуги
 document.getElementById("shortStats").innerHTML = `
+<div class="statsRow"><span>🍊 Orange встреч</span><span>${orangeTotal}</span></div>
+<br>
 
 <div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
 <div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
@@ -1127,7 +1141,7 @@ document.getElementById("shortStats").innerHTML = `
 <div class="statsRow"><span>% отказов</span><span>${rejectPercent}% (${rejects})</span></div>
 
 <br>
-
+<b>УСЛУГИ</b><br>
 <div class="statsRow"><span>Активации</span><span>${activationPercent}%</span></div>
 <div class="statsRow"><span>Транзакции</span><span>${transactionPercent}%</span></div>
 <div class="statsRow"><span>ЦП</span><span>${cpPercent}%</span></div>
@@ -1136,11 +1150,10 @@ document.getElementById("shortStats").innerHTML = `
 <div class="statsRow"><span>АльфаЧек</span><span>${checkPercent}%</span></div>
 
 <br>
-
+<b>МОБИЛЬНОЕ ПРИЛОЖЕНИЕ</b><br>
 <div class="statsRow"><span>МП IOS</span><span>${iosPercentShort}%</span></div>
 <div class="statsRow"><span>МП Android</span><span>${androidPercentShort}%</span></div>
 <div class="statsRow"><span>PPI</span><span>${ppiPercent}%</span></div>
-
 `
 document.getElementById("fullStatsContent").innerHTML = `
 Всего встреч: ${total}<br>
