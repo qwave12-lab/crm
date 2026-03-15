@@ -1197,11 +1197,9 @@ if(m.crossSale==="combo") crossApproved++
 }
 function deleteOne(i){
 
-let reversed=[...meetings].reverse()
+let realIndex = meetings.length - 1 - i
 
-reversed.splice(i,1)
-
-meetings=reversed.reverse()
+meetings.splice(realIndex,1)
 
 save()
 render()
@@ -1209,22 +1207,20 @@ render()
 }
 function editMeeting(i){
 
-let reversed=[...meetings].reverse()
-let m=reversed[i]
+let realIndex = meetings.length - 1 - i
+let m = meetings[realIndex]
 
-let newName=prompt("ФИО",m.name)
-if(newName===null) return
+let newName = prompt("ФИО", m.name)
+if(newName === null) return
 
-let newPhone=prompt("Телефон",m.phone)
-if(newPhone===null) return
+let newPhone = prompt("Телефон", m.phone)
+if(newPhone === null) return
 
-let newComment=prompt("Комментарий",m.comment || "")
+let newComment = prompt("Комментарий", m.comment || "")
 
-m.name=newName
-m.phone=newPhone
-m.comment=newComment
-
-meetings=reversed.reverse()
+m.name = newName
+m.phone = newPhone
+m.comment = newComment
 
 save()
 render()
