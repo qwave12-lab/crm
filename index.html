@@ -299,11 +299,7 @@ function sendToSheet(data){
 
 fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
-mode:"no-cors",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify(data)
+body:new URLSearchParams(data)
 })
 
 }
@@ -1271,21 +1267,12 @@ render()
 }
 function deleteFromSheet(id){
 
-function deleteFromSheet(id){
+function sendToSheet(data){
 
 fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
-mode:"no-cors",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-action:"delete",
-id:id
+body:new URLSearchParams(data)
 })
-})
-
-}
 
 }
 
