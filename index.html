@@ -1267,12 +1267,16 @@ render()
 }
 function deleteFromSheet(id){
 
-function sendToSheet(data){
-
 fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
-body:new URLSearchParams(data)
+body:new URLSearchParams({
+action:"delete",
+id:id
 })
+})
+.then(r=>r.text())
+.then(res=>console.log("DELETE RESULT:",res))
+.catch(err=>console.log("DELETE ERROR:",err))
 
 }
 
