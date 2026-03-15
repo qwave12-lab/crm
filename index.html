@@ -38,7 +38,7 @@ button:active{ opacity:0.8; }
 .clientSelect{ position:absolute; right:14px; top:50%; transform:translateY(-50%); width:22px; height:22px; }
 .card.ok{ border-left:5px solid #34c759; }
 .card.transfer{ border-left:5px solid #ffcc00; }
-.card.bankReject{ border-left:5px solid #ff3b30; }
+.card.bankreject{ border-left:5px solid #ff3b30; }
 .card-date{ font-size:12px; color:#777; margin-bottom:6px; display:block; }
 .card-body{ margin-top:8px; line-height:1.5; }
 #searchInput{ margin-top:8px; }
@@ -380,18 +380,17 @@ document.getElementById("planBlock").innerHTML=html
 }
 function addScreenshot(event,i){
 
-let file=event.target.files[0]
+let file = event.target.files[0]
 if(!file) return
 
-let reader=new FileReader()
+let reader = new FileReader()
 
-reader.onload=function(e){
+reader.onload = function(e){
 
-for(let i = meetings.length - 1; i >= 0; i--){
+let reversed = [...meetings].reverse()
+reversed[i].screenshot = e.target.result
 
-let m = meetings[i]
-
-meetings=reversed.reverse()
+meetings = reversed.reverse()
 
 save()
 render()
@@ -488,7 +487,7 @@ if(status==="ndz"){
 return `<div class="tag-ndz">НДЗ</div><b>${name}</b>`
 }
 
-if(status==="bankReject"){
+if(status==="bankreject"){
 return `<div class="tag-reject">ОТКАЗ БАНКА</div><b>${name}</b>`
 }
 
@@ -862,8 +861,8 @@ if(m.status === "ok" && m.phoneType==="android"){
     // статус: считаем отдельно success/transfer/reject
   if(m.status==="transfer"){
   transfers++
-}else if(m.status==="bankReject"){
-  rejects++
+}else if(m.status==="bankreject"){
+rejects++
 }else if(m.status==="ndz"){
   ndz++
 }else{
@@ -967,10 +966,10 @@ ${formatName(m.name,m.status)}<br>${m.type || ""}<br>
 Телефон: ${m.phone || ""}<br>
 Услуги: ${serviceNames || '-'}<br>
 Статус: ${
-m.status==="bankReject" ? "отказ банка" :
+m.status==="bankreject" ? "отказ банка" :
 m.status==="ndz" ? "НДЗ" :
 "успешно"
-}<br>
+}}<br>
 ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
 ${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
 
@@ -1225,7 +1224,7 @@ navigator.clipboard.writeText(text)
 
 alert("Отчёт за день скопирован")
 }
-}
+
 
 </script>
 </body>
