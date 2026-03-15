@@ -859,43 +859,46 @@ if(m.status === "ok" && m.phoneType==="android"){
     if(search && !text.includes(search)) return
 
     // статус: считаем отдельно success/transfer/reject
-  if(m.status==="transfer"){
-  transfers++
-}else if(m.status==="bankreject"){
-rejects++
-}else if(m.status==="ndz"){
-  ndz++
-}else{
-  success++
-}
-// услуги считаются ТОЛЬКО для успешных встреч
-if(m.status === "ok" && m.services){
+if(m.status === "ok"){
 
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 
-m.services.forEach(s=>{
-
-// если ORANGE — считаем только МП
 if(isOrange){
 
-if(
-s==="mp_ios" ||
-s==="mp_android" ||
-s==="mp_ios_exists" ||
-s==="mp_android_exists"
-){
-serviceStats[s] = (serviceStats[s] || 0) + 1
+if(m.services){
+
+if(m.services.includes("mp_ios") || m.services.includes("mp_android")){
+mpCount++
 }
 
-return
+if(m.services.includes("mp_ios_exists") || m.services.includes("mp_android_exists")){
+mpCount++
 }
 
-// обычная логика
-if(s==="alphaSmart" && m.age==="teen") return
+if(!m.services.includes("mp_ios") &&
+   !m.services.includes("mp_android") &&
+   !m.services.includes("mp_ios_exists") &&
+   !m.services.includes("mp_android_exists")){
+mpCount--
+}
 
-serviceStats[s] = (serviceStats[s] || 0) + 1
+}
+
+}else{
+
+if(m.services){
+m.services.forEach(s=>{
+
+if(s==="mp_ios" || s==="mp_android") mpCount++
+if(s==="mp_ios_exists" || s==="mp_android_exists") mpCount++
+
+if(s==="jku") jkuCount++
+if(s==="ppi") ppiCount++
 
 })
+}
+
+}
 
 }
 
