@@ -895,25 +895,24 @@ if(m.status === "ok" && m.phoneType==="android"){
     // фильтр поиска (по имени/дате)
   
 
-// статус: считаем отдельно success/transfer/reject
-if(m.status==="transfer"){
-transfers++
+// Считаем статусы
+if(m.status === "transfer") {
+  transfers++  // ТОЛЬКО увеличиваем счетчик переносов
 }
-else if(m.status==="bankreject"){
-rejects++
+else if(m.status === "bankreject") {
+  rejects++
 }
-else if(m.status==="ndz"){
-ndz++
+else if(m.status === "ndz") {
+  ndz++
 }
-else if(m.status==="ok"){
-success++
+else if(m.status === "ok") {
+  success++
 }
+
+// Для успешных встреч отдельно проверяем Orange (но ничего не делаем)
 if(m.status === "ok"){
-
-let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-
-
-
+  let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
+  // здесь можно будет добавить логику для Orange позже
 }
 // ===== ORANGE ЛОГИКА =====
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
