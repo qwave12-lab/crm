@@ -978,13 +978,14 @@ Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossS
 ` : ""}
 <input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
 <button class="copyBtn" onclick="copyReport(this, ${i})">
-<button onclick="editMeeting(${i})">✏ Редактировать</button>
-<button onclick="deleteOne(${i})">🗑 Удалить</button>
 <svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2">
 <rect x="9" y="9" width="13" height="13" rx="2"></rect>
 <rect x="2" y="2" width="13" height="13" rx="2"></rect>
 </svg>
 </button>
+
+<button onclick="editMeeting(${i})">✏ Редактировать</button>
+<button onclick="deleteOne(${i})">🗑 Удалить</button>
 </div>
 </div>
 `
@@ -1195,16 +1196,7 @@ if(services.includes("mp_ios")) iosInstall++
 if(m.crossSale==="combo") crossApproved++
 
 }
-function deleteOne(i){
 
-let realIndex = meetings.length - 1 - i
-
-meetings.splice(realIndex,1)
-
-save()
-render()
-
-}
 
 
 })
@@ -1253,6 +1245,16 @@ let newComment = prompt("Комментарий", m.comment || "")
 m.name = newName
 m.phone = newPhone
 m.comment = newComment
+
+save()
+render()
+
+}
+function deleteOne(i){
+
+let realIndex = meetings.length - 1 - i
+
+meetings.splice(realIndex,1)
 
 save()
 render()
