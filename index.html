@@ -1271,8 +1271,11 @@ render()
 }
 function deleteFromSheet(id){
 
+function deleteFromSheet(id){
+
 fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
+mode:"no-cors",
 headers:{
 "Content-Type":"application/json"
 },
@@ -1281,6 +1284,8 @@ action:"delete",
 id:id
 })
 })
+
+}
 
 }
 
