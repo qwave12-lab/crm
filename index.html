@@ -497,20 +497,52 @@ let m=reversed[i]
 
 let services=m.services || []
 
+// чекбоксы
+let activation = services.includes("activation") ? "+" : "-"
+let transaction = services.includes("transaction") ? "+" : "-"
+let cp = services.includes("cp") ? "+" : "-"
+let smart = services.includes("alphaSmart") ? "+" : "-"
+let ppi = services.includes("ppi") ? "+" : "-"
+let alphaCheck = services.includes("alphaCheck") ? "+" : ""
+
+// МП
+let mpText="не установил"
+
+if(services.includes("mp_ios_exists") || services.includes("mp_android_exists")){
+mpText="было"
+}
+
+if(services.includes("mp_ios") || services.includes("mp_android")){
+mpText="установил"
+}
+
+// Cross
+let comboText="нет предложения"
+
+if(m.bankOffer==="yes"){
+if(m.crossSale==="none") comboText="отказ клиента"
+if(m.crossSale==="cc") comboText="Cross КК"
+if(m.crossSale==="combo") comboText="Cross Комбо"
+}
+
+// итоговый текст
 let text=`${m.type}
 
 ${m.name}
 
-1. Актив: ${services.includes("activation") ? "+" : ""}
-2. ЦП: ${services.includes("cp") ? "+" : ""}
-3. ЖКУ: ${services.includes("jku") ? "+" : ""}
-4. Комбо/транз: ${services.includes("transaction") ? "+" : ""}
-5. Кросс дк/транз: ${m.crossSale==="cc" || m.crossSale==="combo" ? "+" : ""}
-6. Мп на ${m.phoneType==="ios" ? "айос" : "андроид"}
-7. Кэш:
-8. А-чек: ${services.includes("alphaCheck") ? "+" : ""}
-9. Смарт: ${services.includes("alphaSmart") ? "+" : ""}
-
+1. АКТИВ/ТРАНЗ ${activation}/${transaction}
+2. ЦП: ${cp}
+3. КОМБО/ТРАНЗ: ${comboText}
+4. КРОСС ДК/ТРАНЗ -/-
+5. МП ${mpText}
+6. А-ЧЕК: ${alphaCheck}
+7. СМАРТ: ${smart}
+8. PPI: ${ppi}
+9. ДЕТИ: взрослые
+10. БС: не интересует
+11. Селфи: 0
+12. Коробочное страхование отказ
+13. VOC на встрече: -
 `
 
 navigator.clipboard.writeText(text)
