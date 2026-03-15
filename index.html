@@ -760,13 +760,11 @@ function selectAll(){
 }
 function loadFromSheet(){
 
-if(meetings.length > 0){
-return
-}
-
 fetch("https://script.google.com/macros/s/AKfycbyWkvx5ibKzltb4prt0C0iE0_OdLhJtc8PZTjpGmmfBPrnaziPBoPLLuHDz27es6O125g/exec")
 .then(res=>res.json())
 .then(data=>{
+
+meetings = []
 
 data.forEach(item=>{
 
