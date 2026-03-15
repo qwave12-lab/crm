@@ -792,13 +792,11 @@ services:item.services ? item.services.split(",").map(s=>s.trim()) : [],
 status:item.status ? item.status.toLowerCase() : "",
 comment:item.comment,
 date:item.date,
-
 phoneType:item.phoneType || "ios",
 age:item.age || "adult",
 bankOffer:item.bankOffer || "no",
 crossSale:item.crossSale || "none",
 income:Number(item.income || 0)
-
 })
 
 })
@@ -807,7 +805,7 @@ save()
 render()
 
 })
-loadFromSheet()
+
 }
 
 /* ==== Рендер списка и статистики ==== */
