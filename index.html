@@ -681,8 +681,14 @@ let crossSale=document.getElementById("crossSale")?.value || "none"
 let comment=document.getElementById("comment").value
   let age=document.getElementById("age")?.value || "adult"
 
-  let serviceList = status==="ndz" ? [] : getSelectedServices()
-let income = status==="ndz" ? 0 : calculateIncome(serviceList)
+// Для отказов банка тоже не собираем услуги и доход
+let serviceList = []
+let income = 0
+
+if(status !== "ndz" && status !== "bankReject") {
+  serviceList = getSelectedServices()
+  income = calculateIncome(serviceList)
+}
   let today = new Date().toLocaleDateString("ru-RU")
 
   let file=document.getElementById("screenshot").files[0]
@@ -891,7 +897,17 @@ if(m.status === "ok" && m.phoneType==="android"){
       bankOffers++
       if(m.crossSale==="cc" || m.crossSale==="combo") crossSales++
     }
+// PPI / CC (только для успешных)
+if((m.type==="СС" || m.type==="СС1" || m.type==="СС2") && m.status === "ok") {
+  kkCount++
+  if(m.services && m.services.includes("ppi")) ppiCount++
+}
 
+// Cross (только для успешных)
+if(m.type==="DC" && m.bankOffer==="yes" && m.status === "ok") {
+  bankOffers++
+  if(m.crossSale==="cc" || m.crossSale==="combo") crossSales++
+}
     // фильтр поиска (по имени/дате)
   
 
@@ -928,9 +944,9 @@ if(search && !text.includes(search)) return
 
 // Для обычных клиентов считаем статистику
 if(!isOrange) {
-  if(m.status === "ok" && m.services) {
-    m.services.forEach(s => {
-      serviceStats[s] = (serviceStats[s] || 0) + 1
+if(m.status === "ok" && m.services) {
+  m.services.forEach(s => {
+    serviceStats[s] = (serviceStats[s] || 0) + 1
       if(s === "mp_ios" || s === "mp_android" || s === "mp_ios_exists" || s === "mp_android_exists") {
         mpCount++
       }
