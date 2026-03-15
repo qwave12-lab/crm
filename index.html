@@ -852,6 +852,7 @@ function render(){
 
   // СБРОС ВСЕХ СЧЁТЧИКОВ
   let transfers=0, success=0, rejects=0, ndz=0
+  let regularSuccess = 0 // ТОЛЬКО обычные успешные (без Orange)
   let kkCount=0, ppiCount=0
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
@@ -878,7 +879,7 @@ function render(){
       ndz++
     }
     else if(m.status === "ok") {
-      success++
+      success++ // все успешные (включая Orange)
     }
     
     // Orange проверка
@@ -887,8 +888,10 @@ function render(){
       orangeTotal++
     }
 
-    // Статистика ТОЛЬКО для обычных клиентов и ТОЛЬКО для успешных
+    // Для обычных успешных клиентов (НЕ Orange)
     if(!isOrange && m.status === "ok") {
+      regularSuccess++ // считаем обычных успешных
+      
       // Считаем услуги
       if(m.services) {
         m.services.forEach(s => {
@@ -946,15 +949,15 @@ function render(){
   let crossPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
   ppiPercent = kkCount>0 ? Math.round(ppiCount/kkCount*100) : 0
 
-  // Проценты услуг ТОЛЬКО от успешных встреч
-  let activationPercent = success>0 ? Math.round((serviceStats.activation || 0)/success*100) : 0
-  transactionPercent = success>0 ? Math.round((serviceStats.transaction || 0)/success*100) : 0
-  let cpPercent = success>0 ? Math.round((serviceStats.cp || 0)/success*100) : 0
-  let jkuPercent = success>0 ? Math.round((serviceStats.jku || 0)/success*100) : 0
-  let smartPercent = success>0 ? Math.round((serviceStats.alphaSmart || 0)/success*100) : 0
-  let checkPercent = success>0 ? Math.round((serviceStats.alphaCheck || 0)/success*100) : 0
+  // Проценты услуг ТОЛЬКО от обычных успешных встреч (regularSuccess)
+  let activationPercent = regularSuccess>0 ? Math.round((serviceStats.activation || 0)/regularSuccess*100) : 0
+  transactionPercent = regularSuccess>0 ? Math.round((serviceStats.transaction || 0)/regularSuccess*100) : 0
+  let cpPercent = regularSuccess>0 ? Math.round((serviceStats.cp || 0)/regularSuccess*100) : 0
+  let jkuPercent = regularSuccess>0 ? Math.round((serviceStats.jku || 0)/regularSuccess*100) : 0
+  let smartPercent = regularSuccess>0 ? Math.round((serviceStats.alphaSmart || 0)/regularSuccess*100) : 0
+  let checkPercent = regularSuccess>0 ? Math.round((serviceStats.alphaCheck || 0)/regularSuccess*100) : 0
   
-  // МП проценты
+  // МП проценты (только от обычных успешных)
   iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
   androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
 
@@ -991,7 +994,7 @@ function render(){
   let statsHTML = ""
   for(let s in serviceStats){
     let title = names[s] || s
-    let perc = success>0 ? Math.round(serviceStats[s]/success*100) : 0
+    let perc = regularSuccess>0 ? Math.round(serviceStats[s]/regularSuccess*100) : 0
     statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
   }
 
@@ -1021,7 +1024,8 @@ function render(){
   // Полная статистика
   document.getElementById("fullStatsContent").innerHTML = `
     Всего встреч: ${total}<br>
-    Успешные (ok): ${success}<br>
+    Успешные (ok): ${success} (включая Orange)<br>
+    Успешные обычные: ${regularSuccess} (без Orange)<br>
     Переносы: ${transfers}<br>
     Отказы банка: ${rejects}<br>
     НДЗ: ${ndz}<br>
@@ -1029,7 +1033,7 @@ function render(){
     % переносов: ${transferPercent}%<br>
     % отказов: ${rejectPercent}%<br>
     % НДЗ: ${ndzPercent}%<br><br>
-    <b>Статистика услуг</b><br>
+    <b>Статистика услуг (только обычные клиенты)</b><br>
     ${statsHTML}
     <br><br>
     <b>PPI статистика</b><br>
@@ -1047,7 +1051,7 @@ function render(){
   let androidNot = androidTotal - androidInstalled - androidExists
 
   document.getElementById("fullStatsContent").innerHTML +=
-    `<br><b>МП статистика</b><br>
+    `<br><b>МП статистика (только обычные клиенты)</b><br>
     <b>IOS</b><br>
     всего: ${iosTotal}<br>
     установил: ${iosInstalled}<br>
