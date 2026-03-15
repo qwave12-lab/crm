@@ -686,7 +686,13 @@ phone: phone,
 type: type,
 services: serviceList.join(", "),
 status: status,
-comment: comment
+comment: comment,
+
+phoneType: phoneType,
+age: age,
+bankOffer: bankOffer,
+crossSale: crossSale,
+income: income
 })
 save()
 render()
@@ -705,7 +711,7 @@ type,
 age,
 phoneType,
 services:serviceList,
-status:item.status ? item.status.toLowerCase() : "",
+status:status.toLowerCase(),
 comment,
 income,
 date:today,
@@ -719,7 +725,13 @@ phone: phone,
 type: type,
 services: serviceList.join(", "),
 status: status,
-comment: comment
+comment: comment,
+
+phoneType: phoneType,
+age: age,
+bankOffer: bankOffer,
+crossSale: crossSale,
+income: income
 })
   save()
   // очистка формы (удобство)
@@ -770,19 +782,21 @@ meetings = []
 data.forEach(item=>{
 
 meetings.push({
+
 name:item.name,
 phone:item.phone,
 type:item.type,
 services:item.services ? item.services.split(", ") : [],
-status:item.status,
+status:item.status ? item.status.toLowerCase() : "",
 comment:item.comment,
 date:item.date,
 
-phoneType:"ios",
-age:"adult",
-bankOffer:"no",
-crossSale:"none",
-income:0
+phoneType:item.phoneType || "ios",
+age:item.age || "adult",
+bankOffer:item.bankOffer || "no",
+crossSale:item.crossSale || "none",
+income:Number(item.income || 0)
+
 })
 
 })
