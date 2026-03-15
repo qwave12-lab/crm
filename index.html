@@ -814,9 +814,9 @@ function render(){
   let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
   // счётчики
- let transfers=0, success=0, rejects=0, ndz=0
-  let kkCount=0, ppiCount=0
-
+let transfers=0, success=0, rejects=0, ndz=0
+let kkCount=0, ppiCount=0
+let mpCount=0, jkuCount=0
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
   let iosExists=0, androidExists=0
@@ -829,6 +829,11 @@ crossSales=0
   // показываем последние сверху — используем reversed копию
   let reversed=[...meetings].reverse()
   reversed.forEach((m,i)=>{
+    if(m.services){
+m.services.forEach(s=>{
+serviceStats[s]=(serviceStats[s]||0)+1
+})
+}
     // подсчёт MP по типу телефона
 if(m.status === "ok" && m.phoneType==="ios"){
   iosTotal++
