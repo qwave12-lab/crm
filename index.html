@@ -663,7 +663,9 @@ if(file){
 let reader=new FileReader()
 reader.onload=function(e){
 let id = Date.now()
+
 meetings.push({
+id:id,
 name,
 phone,
 type,
@@ -704,7 +706,10 @@ return
 
 
 
+let id = Date.now()
+
 meetings.push({
+id:id,
 name,
 phone,
 type,
@@ -719,6 +724,7 @@ bankOffer,
 crossSale
 })
 sendToSheet({
+id: id,
 date: today,
 name: name,
 phone: phone,
@@ -1254,11 +1260,28 @@ render()
 function deleteOne(i){
 
 let realIndex = meetings.length - 1 - i
+let id = meetings[realIndex].id
+
+deleteFromSheet(id)
 
 meetings.splice(realIndex,1)
 
 save()
 render()
+
+}
+function deleteFromSheet(id){
+
+fetch("https://script.google.com/macros/s/AKfycbyWkvx5ibKzltb4prt0C0iE0_OdLhJtc8PZTjpGmmfBPrnaziPBoPLLuHDz27es6O125g/exec",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+action:"delete",
+id:id
+})
+})
 
 }
 
