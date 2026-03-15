@@ -987,7 +987,7 @@ Cross: ${m.bankOffer==="no" ? "предложения не было" : (m.crossS
 </svg>
 </button>
 
-<button onclick="editMeeting(${i})">✏ Редактировать</button>
+
 <button onclick="deleteOne(${i})">🗑 Удалить</button>
 </div>
 </div>
@@ -1232,27 +1232,7 @@ navigator.clipboard.writeText(text)
 
 alert("Отчёт за день скопирован")
 }
-function editMeeting(i){
 
-let realIndex = meetings.length - 1 - i
-let m = meetings[realIndex]
-
-let newName = prompt("ФИО", m.name)
-if(newName === null) return
-
-let newPhone = prompt("Телефон", m.phone)
-if(newPhone === null) return
-
-let newComment = prompt("Комментарий", m.comment || "")
-
-m.name = newName
-m.phone = newPhone
-m.comment = newComment
-
-save()
-render()
-
-}
 function deleteOne(i){
 
 let realIndex = meetings.length - 1 - i
