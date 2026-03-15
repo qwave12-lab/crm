@@ -935,7 +935,7 @@ if(s === "mp_android_exists") return "МП Android уже было"
       return names[s] || s
     }).join(", ")
 
-    if(m.status==="transfer"){
+if(m.status==="transfer"){
 
 list.innerHTML += `
 <div class="card transfer">
@@ -948,10 +948,11 @@ ${formatName(m.name,m.status)}
 <b>Комментарий:</b> ${m.comment || "-"}<br>
 Статус: перенос
 
+<button onclick="deleteOne(${i})">🗑 Удалить</button>
+
 </div>
 </div>
 `
-
 }else{
 
 list.innerHTML += `
