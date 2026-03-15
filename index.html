@@ -860,10 +860,21 @@ if(m.status === "ok" && m.phoneType==="android"){
     }
 
     // фильтр поиска (по имени/дате)
-    let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
-    if(search && !text.includes(search)) return
+  
 
-    // статус: считаем отдельно success/transfer/reject
+// статус: считаем отдельно success/transfer/reject
+if(m.status==="transfer"){
+transfers++
+}
+else if(m.status==="bankreject"){
+rejects++
+}
+else if(m.status==="ndz"){
+ndz++
+}
+else if(m.status==="ok"){
+success++
+}
 if(m.status === "ok"){
 
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
@@ -906,6 +917,10 @@ if(s==="ppi") ppiCount++
 }
 
 }
+// фильтр поиска
+let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
+if(search && !text.includes(search)) return
+
 
     // Доходы считаем только для успешных (ok) — если нужно считать иначе, скажи
 if(m.status==="ok"){
