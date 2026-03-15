@@ -856,7 +856,7 @@ if(m.status === "ok" && m.phoneType==="android"){
     }
 
     // фильтр поиска (по имени/дате)
-    let text=(m.name + " " + (m.date || "")).toLowerCase()
+    let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
     if(search && !text.includes(search)) return
 
     // статус: считаем отдельно success/transfer/reject
@@ -872,7 +872,7 @@ rejects++
 // услуги считаются ТОЛЬКО для успешных встреч
 if(m.status === "ok" && m.services){
 
-let isOrange = m.name && m.name.toLowerCase().includes("orange")
+let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 
 m.services.forEach(s=>{
 
