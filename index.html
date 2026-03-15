@@ -297,7 +297,7 @@ function toggleStatusMenu(){
 }
 function sendToSheet(data){
 
-fetch("https://script.google.com/macros/s/AKfycbzb-RLoe3v3TrQcEVvFq1aF4mJB34PvI04mVNSp1ZbczyQdfGh7vxrovRKkiUnA8uSNbQ/exec",{
+fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
 mode:"no-cors",
 headers:{
@@ -662,7 +662,7 @@ let screenshot=""
 if(file){
 let reader=new FileReader()
 reader.onload=function(e){
-
+let id = Date.now()
 meetings.push({
 name,
 phone,
@@ -679,6 +679,7 @@ crossSale,
 screenshot:e.target.result
 })
 sendToSheet({
+  id: id,
 date: today,
 name: name,
 phone: phone,
@@ -772,7 +773,7 @@ function selectAll(){
 }
 function loadFromSheet(){
 
-fetch("https://script.google.com/macros/s/AKfycbzb-RLoe3v3TrQcEVvFq1aF4mJB34PvI04mVNSp1ZbczyQdfGh7vxrovRKkiUnA8uSNbQ/exec")
+fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec")
 .then(res=>res.json())
 .then(data=>{
 
@@ -781,7 +782,7 @@ meetings = []
 data.forEach(item=>{
 
 meetings.push({
-
+id:item.id,
 name:item.name,
 phone:item.phone,
 type:item.type,
