@@ -300,7 +300,7 @@ function sendToSheet(data){
 fetch("https://script.google.com/macros/s/AKfycbyWkvx5ibKzltb4prt0C0iE0_OdLhJtc8PZTjpGmmfBPrnaziPBoPLLuHDz27es6O125g/exec",{
 method:"POST",
 headers:{
-"Content-Type":"text/plain;charset=utf-8"
+"Content-Type":"application/json"
 },
 body:JSON.stringify(data)
 })
@@ -1135,8 +1135,10 @@ load()
 renderServices()
 updateOfferBlock()
 updateCrossBlock()
+
+loadFromSheet()
+
 render()
-setTimeout(loadFromSheet,1000)
 function copyDayReport(){
 
 let today=new Date().toLocaleDateString("ru-RU")
