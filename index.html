@@ -886,28 +886,8 @@ if(m.status === "ok" && m.phoneType==="android"){
   if(m.services && m.services.includes("mp_android_exists")) androidExists++
 }
 
-    // PPI / CC
-    if(m.type==="СС" || m.type==="СС1" || m.type==="СС2"){
-      kkCount++
-      if(m.services && m.services.includes("ppi")) ppiCount++
-    }
+   
 
-    // Cross
-    if(m.type==="DC" && m.bankOffer==="yes"){
-      bankOffers++
-      if(m.crossSale==="cc" || m.crossSale==="combo") crossSales++
-    }
-// PPI / CC (только для успешных)
-if((m.type==="СС" || m.type==="СС1" || m.type==="СС2") && m.status === "ok") {
-  kkCount++
-  if(m.services && m.services.includes("ppi")) ppiCount++
-}
-
-// Cross (только для успешных)
-if(m.type==="DC" && m.bankOffer==="yes" && m.status === "ok") {
-  bankOffers++
-  if(m.crossSale==="cc" || m.crossSale==="combo") crossSales++
-}
     // фильтр поиска (по имени/дате)
   
 
