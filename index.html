@@ -376,6 +376,7 @@ font-weight:600;
 
 <div class="panel">
   <button onclick="selectAll()">Выбрать всех</button>
+  <button onclick="copyReport('${m.id}')">📋 Отчёт</button>
   <button onclick="deleteSelected()">Удалить выбранных</button>
 </div>
 
@@ -1483,6 +1484,29 @@ function setTodayFilter() {
   filterEndDate = today
   updatePeriodInfo()
   render()
+}
+function copyReport(id){
+
+let m = meetings.find(x => x.id == id)
+if(!m) return
+
+let services = Array.isArray(m.services) ? m.services.join(", ") : "-"
+
+let text =
+`${m.date}
+${m.name}
+
+Продукт: ${m.product || "-"}
+Телефон: ${m.phone || "-"}
+
+Услуги: ${services}
+
+Статус: ${m.status}
+Cross: ${m.cross || "-"}`
+
+navigator.clipboard.writeText(text)
+
+alert("Отчет встречи скопирован")
 }
 
 function setWeekFilter() {
