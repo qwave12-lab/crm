@@ -1490,19 +1490,18 @@ function copyReport(id){
 let m = meetings.find(x => x.id == id)
 if(!m) return
 
-let services = Array.isArray(m.services) ? m.services.join(", ") : "-"
+let services = Array.isArray(m.services) && m.services.length
+? m.services.join(", ")
+: "-"
 
 let text =
-`${m.date}
-${m.name}
-
-Продукт: ${m.product || "-"}
-Телефон: ${m.phone || "-"}
-
-Услуги: ${services}
-
-Статус: ${m.status}
-Cross: ${m.cross || "-"}`
+m.date+"\n"+
+m.name+"\n\n"+
+"Продукт: "+(m.product || "-")+"\n"+
+"Телефон: "+(m.phone || "-")+"\n\n"+
+"Услуги: "+services+"\n"+
+"Статус: "+m.status+"\n"+
+"Cross: "+(m.cross || "-")
 
 navigator.clipboard.writeText(text)
 
