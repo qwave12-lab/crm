@@ -380,6 +380,24 @@ font-weight:600;
 </div>
 
 <script>
+  function normalizeDate(date){
+
+if(!date) return ""
+
+date = String(date)
+
+if(date.includes("-")){
+let p = date.split("-")
+return p[2]+"."+p[1]+"."+p[0]
+}
+
+if(date.includes(".")){
+return date
+}
+
+return date
+
+}
 /* ==== Данные и сохранение ====
    meetings — массив встреч
 */
@@ -625,115 +643,7 @@ if (lower.startsWith("re")) {  // RE проверка
 
   return `<b>${name}</b>`
 }
-function copyDayReport(){
 
-let d = new Date()
-
-let today =
-String(d.getDate()).padStart(2,"0")+"."+
-String(d.getMonth()+1).padStart(2,"0")+"."+
-d.getFullYear()
-
-let assigned = 0
-let success = 0
-let ndz = 0
-let reject = 0
-let orangeSuccess = 0
-
-let activation = 0
-let transaction = 0
-let cp = 0
-let ppi = 0
-let alphaCheck = 0
-let smart = 0
-let jku = 0
-
-let comboApproved = 0
-let comboIssued = 0
-
-let iosInstall = 0
-let androidInstall = 0
-let iosHad = 0
-let androidHad = 0
-
-meetings.forEach(m=>{
-
-if(!m.date) return
-
-let date = m.date.replaceAll("-",".").split("T")[0]
-
-if(date !== today) return
-
-assigned++
-
-let services = m.services ? m.services.split(",").map(s=>s.trim()) : []
-
-if(m.status==="ok") success++
-if(m.status==="ndz") ndz++
-if(m.status==="reject") reject++
-
-if(m.name && m.name.toLowerCase().includes("orange") && m.status==="ok"){
-orangeSuccess++
-}
-
-if(services.includes("activation")) activation++
-if(services.includes("transaction")) transaction++
-if(services.includes("cp")) cp++
-if(services.includes("ppi")) ppi++
-if(services.includes("alphaCheck")) alphaCheck++
-if(services.includes("alphaSmart")) smart++
-if(services.includes("jku")) jku++
-
-if(m.crossSale==="combo"){
-comboApproved++
-if(services.includes("activation")) comboIssued++
-}
-
-if(m.phoneType==="ios") iosHad++
-if(m.phoneType==="android") androidHad++
-
-if(services.includes("mp_ios")) iosInstall++
-if(services.includes("mp_android")) androidInstall++
-
-})
-
-let voc = Math.floor(Math.random()*3)+1
-
-let text =
-today+"\n"+
-"Митин О.Р\n\n"+
-
-"1. Назначено встреч "+assigned+"\n"+
-"2. Проведено "+success+"\n"+
-"3. x"+success+" 🍊"+orangeSuccess+"\n"+
-"4. НДЗ "+ndz+"\n"+
-"5. Отказ "+reject+"\n"+
-"6. Актив "+activation+"\n"+
-"7. Транзакции "+transaction+"\n"+
-"8. Цп "+cp+"\n"+
-"9. PPI "+ppi+"\n"+
-"10. AlphaCheck "+alphaCheck+"\n"+
-"11. AlphaSmart "+smart+"\n"+
-"12. ЖКУ "+jku+"\n"+
-"13. Комбо одобрено/выдано "+comboApproved+"/"+comboIssued+"\n"+
-"14. Комбо транзакции 0\n"+
-"15. Кросс Дк 0\n"+
-"16. Кросс Дк транзакции 0\n"+
-"17. БС/Инвест 0\n"+
-"18. Короб. Стах. 0\n"+
-"19. Детские 0\n"+
-"20. Выдано Дк/ транзакции Дк 0/0\n"+
-"21. IOS установил "+iosInstall+"\n"+
-"22. Android установил "+androidInstall+"\n"+
-"23. IOS было у клиентов "+iosHad+"\n"+
-"24. Android было у клиентов "+androidHad+"\n"+
-"25. VOC "+voc
-
-navigator.clipboard.writeText(text)
-
-alert("Отчёт дня скопирован")
-
-}
 
 // анимация кнопки
 function copyAnimation(btn){
@@ -878,7 +788,12 @@ if(status !== "ndz" && status !== "bankreject") {
   serviceList = getSelectedServices()
   income = calculateIncome(serviceList)
 }
-  let today = new Date().toLocaleDateString("ru-RU")
+ const d = new Date()
+
+let today =
+String(d.getDate()).padStart(2,"0")+"."+
+String(d.getMonth()+1).padStart(2,"0")+"."+
+d.getFullYear()
 
   let file=document.getElementById("screenshot").files[0]
 let screenshot=""
@@ -1443,15 +1358,14 @@ loadFromSheet()
 }
 function copyDayReport(){
 
-let d = new Date()
+const d = new Date()
 
-let today =
+const today =
 String(d.getDate()).padStart(2,"0")+"."+
 String(d.getMonth()+1).padStart(2,"0")+"."+
 d.getFullYear()
 
-let todayMeetings = meetings.filter(m => m.date === today)
-
+let todayMeetings = meetings.filter(m => formatDisplayDate(m.date) === today)
 let assigned = todayMeetings.length
 let success = 0
 let ndz = 0
@@ -1476,11 +1390,11 @@ let androidHad = 0
 
 todayMeetings.forEach(m=>{
 
-let services = m.services ? m.services.split(",").map(s=>s.trim()) : []
+let services = m.services || []
 
 if(m.status==="ok") success++
 if(m.status==="ndz") ndz++
-if(m.status==="reject") reject++
+if(m.status==="bankreject") reject++
 
 if(m.name && m.name.toLowerCase().includes("orange") && m.status==="ok"){
 orangeSuccess++
