@@ -1315,7 +1315,7 @@ let total = reversed.filter(m => {
             <input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
            <div class="cardActions">
 
-<button class="actionBtn reportBtn" onclick="copyReport(this, ${i})">
+<button class="actionBtn reportBtn" onclick="copyDayReport(this, ${i})">
 📋 Отчёт
 </button>
 
@@ -1396,10 +1396,11 @@ if(m.status==="ok") success++
 if(m.status==="ndz") ndz++
 if(m.status==="bankreject") reject++
 
-if(m.name && m.name.toLowerCase().includes("orange") && m.status==="ok"){
+let name = String(m.name || "").toLowerCase()
+
+if(name.includes("orange") && m.status==="ok"){
 orangeSuccess++
 }
-
 if(services.includes("activation")) activation++
 if(services.includes("transaction")) transaction++
 if(services.includes("cp")) cp++
