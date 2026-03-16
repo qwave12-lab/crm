@@ -944,11 +944,15 @@ function render() {
 
 // ===== СБОР СТАТИСТИКИ =====
 reversed.forEach((m, i) => {
-  // Статусы для всех
+// Статусы только в выбранном периоде
+if (dateInFilter) {
+
   if (m.status === "transfer") transfers++
   else if (m.status === "bankreject") rejects++
   else if (m.status === "ndz") ndz++
-  else if (m.status === "ok" && m.income > 0)success++
+  else if (m.status === "ok") success++
+
+}
 
   // Orange и RE проверка
   let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
