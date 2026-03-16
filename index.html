@@ -234,7 +234,7 @@ font-weight:600;
 
 <div id="statusMenu" style="display:none;margin-top:8px">
   <button onclick="addMeeting('ok')" style="background:#34c759; color:white; font-weight:bold;">✅ Успешно</button>
-  <button onclick="addMeeting('bankReject')" style="background:#ff3b30; color:white; font-weight:bold;">❌ Отказ банка</button>
+  <button onclick="addMeeting('bankreject')" style="background:#ff3b30; color:white; font-weight:bold;">❌ Отказ банка</button>
   <button onclick="addMeeting('transfer')" style="background:#ffcc00; color:black; font-weight:bold;">🔄 Перенос</button>
   <button onclick="addMeeting('ndz')" style="background:#9c27b0; color:white; font-weight:bold;">💜 НДЗ</button>
 </div>
@@ -944,6 +944,7 @@ function render() {
 
 // ===== СБОР СТАТИСТИКИ =====
 reversed.forEach((m, i) => {
+  let status = String(m.status || "").toLowerCase().trim()
   let meetingDate = m.date
 let dateInFilter = true
 
@@ -974,9 +975,9 @@ if (dateInFilter && isRE) reTotal++
 if (dateInFilter) {
 
   if (m.status === "transfer") transfers++
-  else if (m.status === "bankreject") rejects++
-  else if (m.status === "ndz") ndz++
-  else if (m.status === "ok") success++
+  else if (status === "bankreject") rejects++
+  else if (status === "ndz") ndz++
+  else else if (status === "transfer") success++
 
 }
 
