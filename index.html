@@ -551,14 +551,13 @@ if (lower.startsWith("re")) {  // RE проверка
   return `<b>${name}</b>`
 }
 function copyReport(btn, i) {
-  let reversed = [...meetings].reverse()
-  let m = reversed[i]
+let m = meetings[meetings.length - 1 - i]
   
   let services = m.services || []
   
   // Определяем тэг для НДЗ
   let tag = ""
-  let nameLower = m.name.toLowerCase()
+  let nameLower = String(m.name).toLowerCase()
   
   if (nameLower.includes("orange")) {
     tag = "ORANGE "
