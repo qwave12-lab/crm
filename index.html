@@ -380,24 +380,7 @@ font-weight:600;
 </div>
 
 <script>
-  function normalizeDate(date){
 
-if(!date) return ""
-
-date = String(date)
-
-if(date.includes("-")){
-let p = date.split("-")
-return p[2]+"."+p[1]+"."+p[0]
-}
-
-if(date.includes(".")){
-return date
-}
-
-return date
-
-}
 /* ==== Данные и сохранение ====
    meetings — массив встреч
 */
@@ -1365,7 +1348,7 @@ String(d.getDate()).padStart(2,"0")+"."+
 String(d.getMonth()+1).padStart(2,"0")+"."+
 d.getFullYear()
 
-let todayMeetings = meetings.filter(m => normalizeDate(m.date) === today)
+let todayMeetings = meetings.filter(m => formatDisplayDate(m.date) === today)
 let assigned = todayMeetings.length
 let success = 0
 let ndz = 0
