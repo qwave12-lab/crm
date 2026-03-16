@@ -912,48 +912,52 @@ render()
       }
     }
 
-    // ===== СТАТИСТИКА УСЛУГ =====
-    if(m.status === "ok" && m.services) {
-      
-      if(isRE) {
-        // RE влияет ТОЛЬКО на активацию
-        m.services.forEach(s => {
-          if(s === "activation") {
-            serviceStats[s] = (serviceStats[s] || 0) + 1
-          }
-          // все остальные услуги RE игнорируем
-        })
+// ===== СТАТИСТИКА УСЛУГ =====
+if(m.status === "ok" && m.services) {
+  
+  if(isRE) {
+    // RE учитывается ТОЛЬКО в активации и транзакции для статистики
+    m.services.forEach(s => {
+      if(s === "activation" || s === "transaction") {
+        serviceStats[s] = (serviceStats[s] || 0) + 1
       }
-      else if(!isOrange) {
-        // Обычные клиенты (не Orange, не RE) влияют на все услуги
-        m.services.forEach(s => {
-          serviceStats[s] = (serviceStats[s] || 0) + 1
-        })
-        
-        // МП статистика только для обычных
-        if(m.phoneType === "ios") {
-          iosTotal++
-          if(m.services.includes("mp_ios")) iosInstalled++
-          if(m.services.includes("mp_ios_exists")) iosExists++
-        }
-        if(m.phoneType === "android") {
-          androidTotal++
-          if(m.services.includes("mp_android")) iosInstalled++
-          if(m.services.includes("mp_android_exists")) iosExists++
-        }
-        
-        // PPI статистика только для обычных
-        if(m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
-          kkCount++
-          if(m.services.includes("ppi")) ppiCount++
-        }
-        
-        // Cross статистика только для обычных
-        if(m.type === "DC" && m.bankOffer === "yes") {
-          bankOffers++
-          if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
-        }
-      }
+      // ЦП, ЖКУ, Смарт, Чек, PPI - НЕ добавляем в serviceStats
+    })
+    
+    // RE не участвуют в МП, PPI, Cross статистике
+  }
+  else if(!isOrange) {
+    // Обычные клиенты (не Orange, не RE) влияют на все услуги
+    m.services.forEach(s => {
+      serviceStats[s] = (serviceStats[s] || 0) + 1
+    })
+    
+    // МП статистика только для обычных
+    if(m.phoneType === "ios") {
+      iosTotal++
+      if(m.services.includes("mp_ios")) iosInstalled++
+      if(m.services.includes("mp_ios_exists")) iosExists++
+    }
+    if(m.phoneType === "android") {
+      androidTotal++
+      if(m.services.includes("mp_android")) iosInstalled++
+      if(m.services.includes("mp_android_exists")) iosExists++
+    }
+    
+    // PPI статистика только для обычных
+    if(m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+      kkCount++
+      if(m.services.includes("ppi")) ppiCount++
+    }
+    
+    // Cross статистика только для обычных
+    if(m.type === "DC" && m.bankOffer === "yes") {
+      bankOffers++
+      if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
+    }
+  }
+  // Orange полностью игнорируем в статистике услуг
+}
       // Orange полностью игнорируем в статистике услуг
     }
   })
