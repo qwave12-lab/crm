@@ -887,7 +887,9 @@ id:item.id,
 name:String(item.name || ""),
 phone:String(item.phone || ""),
 type:item.type || "",
-services:item.services ? item.services.split(",").map(s=>s.trim()) : [],
+services: Array.isArray(item.services)
+  ? item.services
+  : (item.services ? String(item.services).split(",").map(s => s.trim()) : []),
 status:(item.status || "").toLowerCase(),
 comment:item.comment || "",
 date:item.date || "",
