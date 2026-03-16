@@ -927,17 +927,23 @@ reversed.forEach((m, i) => {
 let meetingDate = m.date
 let dateInFilter = true
 
-if (filterStartDate && filterEndDate) {
+// Если фильтр не установлен, показываем всё
+if (!filterStartDate || !filterEndDate) {
+  dateInFilter = true
+} else {
   // Преобразуем дату встречи из формата "DD.MM.YYYY" в "YYYY-MM-DD"
-  let meetingDateParts = meetingDate.split('.')
-  if (meetingDateParts.length === 3) {
-    let meetingDateFormatted = meetingDateParts[2] + '-' + meetingDateParts[1] + '-' + meetingDateParts[0]
-    
-    if (meetingDateFormatted < filterStartDate) dateInFilter = false
-    if (meetingDateFormatted > filterEndDate) dateInFilter = false
+  if (meetingDate && meetingDate.includes('.')) {
+    let meetingDateParts = meetingDate.split('.')
+    if (meetingDateParts.length === 3) {
+      let meetingDateFormatted = meetingDateParts[2] + '-' + meetingDateParts[1] + '-' + meetingDateParts[0]
+      
+      if (meetingDateFormatted < filterStartDate) dateInFilter = false
+      if (meetingDateFormatted > filterEndDate) dateInFilter = false
+    }
   } else {
-    // Если формат не распознан, считаем что дата не подходит
-    dateInFilter = false
+    // Если дата уже в формате YYYY-MM-DD
+    if (meetingDate < filterStartDate) dateInFilter = false
+    if (meetingDate > filterEndDate) dateInFilter = false
   }
 }
 
