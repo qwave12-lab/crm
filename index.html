@@ -1315,7 +1315,7 @@ let total = reversed.filter(m => {
             <input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
            <div class="cardActions">
 
-<button class="actionBtn reportBtn" onclick="copyDayReport(this, ${i})">
+<button class="actionBtn reportBtn" onclick="copyDayReport()">
 📋 Отчёт
 </button>
 
@@ -1365,7 +1365,7 @@ String(d.getDate()).padStart(2,"0")+"."+
 String(d.getMonth()+1).padStart(2,"0")+"."+
 d.getFullYear()
 
-let todayMeetings = meetings.filter(m => formatDisplayDate(m.date) === today)
+let todayMeetings = meetings.filter(m => normalizeDate(m.date) === today)
 let assigned = todayMeetings.length
 let success = 0
 let ndz = 0
@@ -1414,8 +1414,10 @@ comboApproved++
 if(services.includes("activation")) comboIssued++
 }
 
+if(m.status==="ok"){
 if(m.phoneType==="ios") iosHad++
 if(m.phoneType==="android") androidHad++
+}
 
 if(services.includes("mp_ios")) iosInstall++
 if(services.includes("mp_android")) androidInstall++
