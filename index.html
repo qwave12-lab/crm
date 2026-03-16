@@ -1487,75 +1487,105 @@ loadFromSheet()
 function copyDayReport(){
 
 let d = new Date()
+
 let today =
-String(d.getDate()).padStart(2,"0") + "." +
-String(d.getMonth()+1).padStart(2,"0") + "." +
+String(d.getDate()).padStart(2,"0")+"."+
+String(d.getMonth()+1).padStart(2,"0")+"."+
 d.getFullYear()
 
-let todayMeetings=meetings.filter(m=>m.date===today)
+let todayMeetings = meetings.filter(m => m.date === today)
 
-let assigned=todayMeetings.length
-let success=0
+let assigned = todayMeetings.length
+let success = 0
+let ndz = 0
+let reject = 0
+let orangeSuccess = 0
 
-let activation=0
-let cp=0
-let smart=0
+let activation = 0
+let transaction = 0
+let cp = 0
+let ppi = 0
+let alphaCheck = 0
+let smart = 0
+let jku = 0
 
-let iosExists=0
-let iosInstall=0
+let comboApproved = 0
+let comboIssued = 0
 
-let crossApproved=0
+let iosInstall = 0
+let androidInstall = 0
+let iosHad = 0
+let androidHad = 0
 
 todayMeetings.forEach(m=>{
 
-if(m.status==="ok"){
+let services = m.services ? m.services.split(",").map(s=>s.trim()) : []
 
-success++
+if(m.status==="ok") success++
+if(m.status==="ndz") ndz++
+if(m.status==="reject") reject++
 
-let services=m.services || []
-
-if(services.includes("activation")) activation++
-if(services.includes("cp")) cp++
-if(services.includes("alphaSmart")) smart++
-
-if(services.includes("mp_ios_exists")) iosExists++
-if(services.includes("mp_ios")) iosInstall++
-
-if(m.crossSale==="combo") crossApproved++
-
+if(m.name && m.name.toLowerCase().includes("orange") && m.status==="ok"){
+orangeSuccess++
 }
 
+if(services.includes("activation")) activation++
+if(services.includes("transaction")) transaction++
+if(services.includes("cp")) cp++
+if(services.includes("ppi")) ppi++
+if(services.includes("alphaCheck")) alphaCheck++
+if(services.includes("alphaSmart")) smart++
+if(services.includes("jku")) jku++
 
+if(m.crossSale==="combo"){
+comboApproved++
+if(services.includes("activation")) comboIssued++
+}
+
+if(m.phoneType==="ios") iosHad++
+if(m.phoneType==="android") androidHad++
+
+if(services.includes("mp_ios")) iosInstall++
+if(services.includes("mp_android")) androidInstall++
 
 })
 
-let voc=Math.round(success*0.3)
+let voc = Math.floor(Math.random()*3)+1
 
-let text=`${today}
-Митин О.Р
+let text =
+today+"\n"+
+"Митин О.Р\n\n"+
 
-1. Назначено встреч ${assigned}
-2. Проведено ${success}
-3. Актив ${activation}
-4. Цп ${cp}
-5. Комбо одобрено/выдано ${crossApproved}/${crossApproved}
-6. Комбо транзакции 0
-7. Кросс Дк 0
-8. Кросс Дк транзакции 0
-9. БС/Инвест 0
-10. Смарт ${smart}
-11. Короб. Стах. 0
-12. Детские 0
-13. Селфи 0
-14. Выдано Дк/ транзакции Дк 0/0
-15. Выдано КК/транзакцииКк 0/0
-16. IOS было/установил ${iosExists}/${iosInstall}
-17. VOC ${voc}
-`
+"1. Назначено встреч "+assigned+"\n"+
+"2. Проведено "+success+"\n"+
+"3. x"+success+" 🍊"+orangeSuccess+"\n"+
+"4. НДЗ "+ndz+"\n"+
+"5. Отказ "+reject+"\n"+
+"6. Актив "+activation+"\n"+
+"7. Транзакции "+transaction+"\n"+
+"8. Цп "+cp+"\n"+
+"9. PPI "+ppi+"\n"+
+"10. AlphaCheck "+alphaCheck+"\n"+
+"11. AlphaSmart "+smart+"\n"+
+"12. ЖКУ "+jku+"\n"+
+"13. Комбо одобрено/выдано "+comboApproved+"/"+comboIssued+"\n"+
+"14. Комбо транзакции 0\n"+
+"15. Кросс Дк 0\n"+
+"16. Кросс Дк транзакции 0\n"+
+"17. БС/Инвест 0\n"+
+"18. Короб. Стах. 0\n"+
+"19. Детские 0\n"+
+"20. Выдано Дк/ транзакции Дк 0/0\n"+
+"21. IOS установил "+iosInstall+"\n"+
+"22. Android установил "+androidInstall+"\n"+
+"23. IOS было у клиентов "+iosHad+"\n"+
+"24. Android было у клиентов "+androidHad+"\n"+
+"25. VOC "+voc
 
 navigator.clipboard.writeText(text)
 
-alert("Отчёт за день скопирован")
+alert("Отчёт дня скопирован")
+
 }
 
 function deleteOne(i){
