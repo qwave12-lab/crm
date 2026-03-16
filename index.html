@@ -1076,7 +1076,7 @@ services:item.services ? item.services.split(",").map(s=>s.trim()) : [],
 status:(item.status || "").toLowerCase(),
 comment:item.comment || "",
 
-date:new Date(item.date).toLocaleDateString('en-CA'),
+date: formatDisplayDate(item.date),
 
 phoneType:item.phoneType || "ios",
 age:item.age || "adult",
@@ -1477,7 +1477,7 @@ let total = reversed.filter(m => {
 /* старт */
 window.onload = function(){
 
-load()
+
 renderServices()
 updateOfferBlock()
 updateCrossBlock()
