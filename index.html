@@ -350,9 +350,9 @@ function toggleStatusMenu(){
   let menu=document.getElementById("statusMenu")
   menu.style.display = (menu.style.display==="none" || menu.style.display==="") ? "block" : "none"
 }
-function sendToSheet(data){
+async function sendToSheet(data){
+return fetch(API_URL,{
 
-fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
 body:new URLSearchParams(data)
 })
@@ -725,7 +725,7 @@ function calculateIncome(list){
 }
 
 /* ==== Добавление встречи ==== */
-function addMeeting(status){
+async function addMeeting(status){
   let name=document.getElementById("name").value
   if(!name){ alert("Введите ФИО"); return }
 
@@ -759,8 +759,27 @@ if(status !== "ndz" && status !== "bankreject") {
 let screenshot=""
 if(file){
 let reader=new FileReader()
-reader.onload=function(e){
+reader.onload = async function(e){
 let id = Date.now()
+
+await sendToSheet({
+id: id,
+date: today,
+name: name,
+phone: phone,
+type: type,
+services: serviceList.join(", "),
+status: status,
+comment: comment,
+phoneType: phoneType,
+age: age,
+bankOffer: bankOffer,
+crossSale: crossSale,
+advance: 300,
+rest: 100,
+servicesIncome: income,
+screenshot:e.target.result
+})
 
 meetings.push({
 id:id,
@@ -772,29 +791,13 @@ phoneType,
 services:serviceList,
 status,
 comment,
-income,
+advance:300,
+rest:100,
+servicesIncome:income,
 date:today,
 bankOffer,
 crossSale,
 screenshot:e.target.result
-})
-sendToSheet({
-  id: id,
-date: today,
-name: name,
-phone: phone,
-type: type,
-services: serviceList.join(", "),
-status: status,
-comment: comment,
-
-phoneType: phoneType,
-age: age,
-bankOffer: bankOffer,
-crossSale: crossSale,
-advance: 300,
-rest: 100,
-servicesIncome: income
 })
 save()
 render()
@@ -807,22 +810,7 @@ return
 
 let id = Date.now()
 
-meetings.push({
-id:id,
-name,
-phone,
-type,
-age,
-phoneType,
-services:serviceList,
-status:status.toLowerCase(),
-comment,
-income,
-date:today,
-bankOffer,
-crossSale
-})
-sendToSheet({
+await sendToSheet({
 id: id,
 date: today,
 name: name,
@@ -831,7 +819,6 @@ type: type,
 services: serviceList.join(", "),
 status: status,
 comment: comment,
-
 phoneType: phoneType,
 age: age,
 bankOffer: bankOffer,
@@ -839,6 +826,25 @@ crossSale: crossSale,
 advance: 300,
 rest: 100,
 servicesIncome: income
+})
+
+meetings.push({
+id:id,
+name,
+phone,
+type,
+age,
+phoneType,
+services:serviceList,
+status,
+comment,
+advance:300,
+rest:100,
+servicesIncome:income,
+date:today,
+bankOffer,
+crossSale,
+screenshot:e.target.result
 })
   save()
   // очистка формы (удобство)
