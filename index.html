@@ -872,6 +872,7 @@ function selectAll(){
   let checks=document.querySelectorAll(".clientSelect")
   checks.forEach(c=>c.checked=true)
 }
+const API_URL = "https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec"
 async function loadFromSheet(){
 
 let res = await fetch(API_URL)
@@ -981,18 +982,22 @@ else if (status === "ok") success++
  // ===== ДОХОД =====
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
 if (dateInFilter && status === "ok") {
-  
-  if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
-  kkCount++
-  if (m.services && m.services.includes("ppi")) {
-    ppiCount++
-  }
-}
-  advance += 300
-  rest += 100
 
-  if (m.income) {
+  if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+    kkCount++
+    if (m.services && m.services.includes("ppi")) {
+      ppiCount++
+    }
+  }
+
+  // если доход уже записан в таблице
+  if (m.income && Number(m.income) > 0) {
     servicesIncome += Number(m.income)
+  } 
+  // если это новая встреча CRM
+  else {
+    advance += 300
+    rest += 100
   }
 
   if (m.type === "DC" && m.bankOffer === "yes") {
