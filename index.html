@@ -760,7 +760,8 @@ let screenshot=""
 if(file){
 let reader=new FileReader()
 reader.onload = async function(e){
-let id = Date.now()
+
+  let id = Date.now()
 
 await sendToSheet({
 id: id,
@@ -778,7 +779,7 @@ crossSale: crossSale,
 advance: 300,
 rest: 100,
 servicesIncome: income,
-screenshot:e.target.result
+screenshot: e.target.result
 })
 
 meetings.push({
@@ -799,8 +800,10 @@ bankOffer,
 crossSale,
 screenshot:e.target.result
 })
+
 save()
 render()
+
 }
 
 reader.readAsDataURL(file)
