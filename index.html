@@ -981,7 +981,7 @@ if (dateInFilter) {
  // ===== ДОХОД =====
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
 if (dateInFilter && m.status === "ok") {
-
+  console.log("доход встреча", m.name, m.income)
   advance += 300
   rest += 100
 
