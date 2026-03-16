@@ -870,7 +870,6 @@ function render() {
 
   // СЧЁТЧИКИ
   let transfers = 0, success = 0, rejects = 0, ndz = 0
-  let regularSuccess = 0 // ТОЛЬКО обычные успешные (без Orange и RE)
   let kkCount = 0, ppiCount = 0
   let iosTotal = 0, androidTotal = 0
   let iosInstalled = 0, androidInstalled = 0
@@ -881,6 +880,11 @@ function render() {
   bankOffers = 0
   crossSales = 0
   let serviceStats = {}
+  
+  // СЧЁТЧИКИ ДЛЯ БАЗЫ ПРОЦЕНТОВ
+  let countForActivation = 0  // кто влияет на активацию
+  let countForTransaction = 0 // кто влияет на транзакцию
+  let countForOther = 0       // кто влияет на остальные услуги (обычные)
 
   // показываем последние сверху
   let reversed = [...meetings].reverse()
@@ -915,26 +919,30 @@ function render() {
     }
 
     // ===== СТАТИСТИКА УСЛУГ =====
-    // ТОЛЬКО для успешных встреч
-    if (m.status === "ok" && m.services) {
+    if (m.status === "ok" && m.services && m.services.length > 0) {
 
       // RE - влияют ТОЛЬКО на активацию и транзакцию
       if (isRE) {
         m.services.forEach(s => {
-          if (s === "activation" || s === "transaction") {
-            serviceStats[s] = (serviceStats[s] || 0) + 1
+          if (s === "activation") {
+            serviceStats.activation = (serviceStats.activation || 0) + 1
+            countForActivation++
+          }
+          if (s === "transaction") {
+            serviceStats.transaction = (serviceStats.transaction || 0) + 1
+            countForTransaction++
           }
         })
-        // RE не влияют на regularSuccess и МП/PPI/Cross
       }
-      // Обычные клиенты (не Orange, не RE)
+      // Обычные клиенты (не Orange, не RE) - влияют на всё
       else if (!isOrange) {
-        // Считаем regularSuccess ТОЛЬКО для обычных успешных
-        regularSuccess++
-
-        // Все услуги
         m.services.forEach(s => {
           serviceStats[s] = (serviceStats[s] || 0) + 1
+          
+          // Считаем базу для каждого типа услуг
+          if (s === "activation") countForActivation++
+          else if (s === "transaction") countForTransaction++
+          else countForOther++ // для ЦП, ЖКУ, Смарт, Чек, PPI
         })
 
         // МП статистика
@@ -976,13 +984,13 @@ function render() {
   let crossPercent = bankOffers > 0 ? Math.round(crossSales / bankOffers * 100) : 0
   ppiPercent = kkCount > 0 ? Math.round(ppiCount / kkCount * 100) : 0
 
-  // Проценты услуг (от обычных успешных)
-  let activationPercent = regularSuccess > 0 ? Math.round((serviceStats.activation || 0) / regularSuccess * 100) : 0
-  transactionPercent = regularSuccess > 0 ? Math.round((serviceStats.transaction || 0) / regularSuccess * 100) : 0
-  let cpPercent = regularSuccess > 0 ? Math.round((serviceStats.cp || 0) / regularSuccess * 100) : 0
-  let jkuPercent = regularSuccess > 0 ? Math.round((serviceStats.jku || 0) / regularSuccess * 100) : 0
-  let smartPercent = regularSuccess > 0 ? Math.round((serviceStats.alphaSmart || 0) / regularSuccess * 100) : 0
-  let checkPercent = regularSuccess > 0 ? Math.round((serviceStats.alphaCheck || 0) / regularSuccess * 100) : 0
+  // Проценты услуг от правильной базы
+  let activationPercent = countForActivation > 0 ? Math.round((serviceStats.activation || 0) / countForActivation * 100) : 0
+  transactionPercent = countForTransaction > 0 ? Math.round((serviceStats.transaction || 0) / countForTransaction * 100) : 0
+  let cpPercent = countForOther > 0 ? Math.round((serviceStats.cp || 0) / countForOther * 100) : 0
+  let jkuPercent = countForOther > 0 ? Math.round((serviceStats.jku || 0) / countForOther * 100) : 0
+  let smartPercent = countForOther > 0 ? Math.round((serviceStats.alphaSmart || 0) / countForOther * 100) : 0
+  let checkPercent = countForOther > 0 ? Math.round((serviceStats.alphaCheck || 0) / countForOther * 100) : 0
 
   // МП проценты
   iosPercentShort = iosTotal > 0 ? Math.round((iosInstalled + iosExists) / iosTotal * 100) : 0
@@ -1021,7 +1029,10 @@ function render() {
   let statsHTML = ""
   for (let s in serviceStats) {
     let title = names[s] || s
-    let perc = regularSuccess > 0 ? Math.round(serviceStats[s] / regularSuccess * 100) : 0
+    let perc = 0
+    if (s === "activation") perc = activationPercent
+    else if (s === "transaction") perc = transactionPercent
+    else perc = countForOther > 0 ? Math.round(serviceStats[s] / countForOther * 100) : 0
     statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
   }
 
@@ -1053,9 +1064,8 @@ function render() {
   document.getElementById("fullStatsContent").innerHTML = `
     Всего встреч: ${total}<br>
     Успешные (ok): ${success}<br>
-    Успешные обычные: ${regularSuccess}<br>
-    Orange успешные: ${orangeTotal}<br>
-    RE успешные: ${reTotal}<br>
+    Orange: ${orangeTotal}<br>
+    RE: ${reTotal}<br>
     Переносы: ${transfers}<br>
     Отказы: ${rejects}<br>
     НДЗ: ${ndz}<br>
