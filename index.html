@@ -792,7 +792,9 @@ phoneType: phoneType,
 age: age,
 bankOffer: bankOffer,
 crossSale: crossSale,
-income: income
+advance: 300,
+rest: 100,
+servicesIncome: income
 })
 save()
 render()
@@ -834,7 +836,9 @@ phoneType: phoneType,
 age: age,
 bankOffer: bankOffer,
 crossSale: crossSale,
-income: income
+advance: 300,
+rest: 100,
+servicesIncome: income
 })
   save()
   // очистка формы (удобство)
@@ -897,7 +901,7 @@ phoneType:item.phoneType || "ios",
 age:item.age || "adult",
 bankOffer:item.bankOffer || "no",
 crossSale:item.crossSale || "none",
-income:Number(item.income || 0)
+income: Number(item.servicesIncome) || 0
 })
 
 })
@@ -983,17 +987,10 @@ else if (status === "ok") success++
 
 // ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
+advance += 300
+rest += 100
+servicesIncome += Number(m.income) || 0
 
-  // базовый доход встречи
-  advance += 300
-  rest += 100
-
-  // услуги
-  if (m.income) {
-    servicesIncome += Number(m.income)
-  }
-
-  // PPI статистика
   if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
     kkCount++
     if (m.services && m.services.includes("ppi")) {
@@ -1001,7 +998,6 @@ if (dateInFilter && status === "ok") {
     }
   }
 
-  // Cross
   if (m.type === "DC" && m.bankOffer === "yes") {
 
     bankOffers++
