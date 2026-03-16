@@ -872,27 +872,24 @@ function selectAll(){
   let checks=document.querySelectorAll(".clientSelect")
   checks.forEach(c=>c.checked=true)
 }
-function loadFromSheet(){
+async function loadFromSheet(){
 
-fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec")
-.then(res=>res.json())
-.then(data=>{
+let res = await fetch(API_URL)
+let data = await res.json()
 
 meetings = []
 
-data.forEach(item=>{
+data.forEach(item => {
 
 meetings.push({
 id:item.id,
-name:String(item.name || ""),
-phone:String(item.phone || ""),
-type:item.type || "",
-services: Array.isArray(item.services)
-  ? item.services
-  : (item.services ? String(item.services).split(",").map(s => s.trim()) : []),
+name:item.name,
+phone:item.phone,
+type:item.type,
+services:item.services ? item.services.split(",").map(s=>s.trim()) : [],
 status:(item.status || "").toLowerCase(),
 comment:item.comment || "",
-date:item.date || "",
+date:item.date,
 phoneType:item.phoneType || "ios",
 age:item.age || "adult",
 bankOffer:item.bankOffer || "no",
@@ -902,9 +899,7 @@ income:Number(item.income || 0)
 
 })
 
-render()
-
-})
+render()   // ← ВОТ ЭТО ГЛАВНОЕ
 
 }
 
