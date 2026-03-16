@@ -550,97 +550,17 @@ if (lower.startsWith("re")) {  // RE проверка
 
   return `<b>${name}</b>`
 }
-function copyReport(btn, i) {
-if (m.status === "bankreject") {
+function copyReport(btn, i){
 
-let text =
-m.type + "\n\n" +
-m.name + "\n\n" +
-"Отказ банка"
-
-navigator.clipboard.writeText(text)
-
-btn.innerHTML = "✅"
-
-setTimeout(() => {
-btn.innerHTML = `<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>`
-}, 1000)
-
-return
-}
+// получаем встречу
 let m = meetings[meetings.length - 1 - i]
 
-let services = m.services || []
-let nameLower = String(m.name).toLowerCase()
 let type = (m.type || "").toUpperCase()
+let services = m.services || []
+let name = m.name || ""
+let nameLower = name.toLowerCase()
 
-let isDC = type.includes("DC")
-let isCC = type.includes("CC")
-
-/* услуги */
-
-let activation = services.includes("activation") ? "+" : "-"
-let transaction = services.includes("transaction") ? "+" : "-"
-let cp = services.includes("cp") ? "+" : "-"
-let smart = services.includes("alphaSmart") ? "+" : "-"
-let ppi = services.includes("ppi") ? "+" : "-"
-let alphaCheck = services.includes("alphaCheck") ? "+" : ""
-
-/* МП */
-
-let mpText = "не установил"
-
-if(services.includes("mp_ios_exists") || services.includes("mp_android_exists")){
-mpText = "было"
-}
-
-if(services.includes("mp_ios") || services.includes("mp_android")){
-mpText = "установил"
-}
-
-/* дети — рандом */
-
-let kidsOptions = [
-"взрослые",
-"нет детей",
-"не интересует",
-"уже есть детские карты",
-"отказался"
-]
-
-let kidsText = kidsOptions[Math.floor(Math.random()*kidsOptions.length)]
-
-/* ===== NDZ короткий ===== */
-
-if(m.status === "ndz"){
-
-let cleanName = m.name
-.replace(/orange/gi,"")
-.replace(/re/gi,"")
-.replace(/t0/gi,"")
-.trim()
-
-let tag = ""
-
-if(nameLower.includes("orange")) tag = "ORANGE "
-if(nameLower.includes("re")) tag = "RE "
-if(nameLower.includes("t0")) tag = "T0 "
-
-let text = tag + m.type + " " + cleanName
-
-navigator.clipboard.writeText(text)
-
-btn.innerHTML="✅"
-setTimeout(()=>{
-btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>`
-},1000)
-
-return
-}
-
-// 🍊 ORANGE X5 отчёт
-if(nameLower.includes("orange")){
-
+// услуги
 let activation = services.includes("activation") ? "+" : "-"
 let transaction = services.includes("transaction") ? "+" : "-"
 let cp = services.includes("cp") ? "+" : "-"
@@ -648,13 +568,92 @@ let smart = services.includes("alphaSmart") ? "+" : "-"
 let ppi = services.includes("ppi") ? "+" : "-"
 let alphaCheck = services.includes("alphaCheck") ? "+" : "-"
 
+// mp
 let mpText = "не установил"
-if (services.includes("mp_ios") || services.includes("mp_android")) {
+
+if (services.includes("mp_ios_exists") || services.includes("mp_android_exists")){
+mpText = "было"
+}
+
+if (services.includes("mp_ios") || services.includes("mp_android")){
 mpText = "установил"
 }
 
+// ---------------- RE ----------------
+
+if(nameLower.includes("re")){
+
+let cleanName = name.replace(/re/gi,"").trim()
+
+let text = "RE " + type + " " + cleanName
+
+if(m.status === "ndz"){
+text += "\n\nНДЗ"
+}
+
+if(m.status === "transfer"){
+text += "\n\nПеренос"
+}
+
+navigator.clipboard.writeText(text)
+copyAnimation(btn)
+return
+}
+
+// ---------------- ОТКАЗ ----------------
+
+if(m.status === "reject" || m.status === "bankreject"){
+
 let text =
-"🍊 X5\n\n" +
+type + "\n\n" +
+name + "\n\n" +
+"Отказ"
+
+navigator.clipboard.writeText(text)
+copyAnimation(btn)
+return
+}
+
+// ---------------- NDZ ----------------
+
+if(m.status === "ndz"){
+
+// orange ndz
+if(nameLower.includes("orange")){
+
+let cleanName = name.replace(/orange/gi,"").trim()
+
+let text =
+"🍊 X5 " + cleanName + "\n\n" +
+"НДЗ"
+
+navigator.clipboard.writeText(text)
+copyAnimation(btn)
+return
+
+}
+
+// обычный ndz
+
+let text =
+type + "\n\n" +
+name + "\n\n" +
+"НДЗ"
+
+navigator.clipboard.writeText(text)
+copyAnimation(btn)
+return
+
+}
+
+// ---------------- ORANGE ----------------
+
+if(nameLower.includes("orange")){
+
+let cleanName = name.replace(/orange/gi,"").trim()
+
+let text =
+"🍊 X5 " + cleanName + "\n\n" +
 "1. АКТИВ/ТРАНЗ " + activation + "/" + transaction + "\n" +
 "2. ЦП: " + cp + "\n" +
 "3. КОМБО/ТРАНЗ: -\n" +
@@ -668,64 +667,45 @@ let text =
 "11. VOC на встрече: сообщил о VOC"
 
 navigator.clipboard.writeText(text)
-
-btn.innerHTML = "✅"
-setTimeout(() => {
-btn.innerHTML = `<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>`
-}, 1000)
-
+copyAnimation(btn)
 return
+
 }
 
-/* ===== ДЕБЕТОВЫЕ КАРТЫ ===== */
+// ---------------- ОБЫЧНЫЙ ОТЧЕТ ----------------
 
-if(isDC){
+let comboText = "нет предложения"
 
-let comboText = "-"
+if (m.bankOffer === "yes"){
 
-if(m.bankOffer==="yes" && m.crossSale==="combo"){
-comboText="-/-"
+if (m.crossSale === "none") comboText = "отказ клиента"
+if (m.crossSale === "cc") comboText = "Cross КК"
+if (m.crossSale === "combo") comboText = "Cross Комбо"
+
 }
 
 let text =
-type+"\n\n"+
-m.name+"\n\n"+
-"1. АКТИВ/ТРАНЗ "+activation+"/"+transaction+"\n"+
-"2. ЦП: "+cp+"\n"+
-"3. КОМБО/ТРАНЗ: "+comboText+"\n"+
-"5. МП "+mpText+"\n"+
-"6. А-ЧЕК: "+alphaCheck+"\n"+
-"7. СМАРТ: "+smart+"\n"+
-"9. ДЕТИ: "+kidsText+"\n"+
-"10. БС: не интересует\n"+
-"13. VOC на встрече: сообщил о VOC"
+type + "\n\n" +
+name + "\n\n" +
+"1. АКТИВ/ТРАНЗ " + activation + "/" + transaction + "\n" +
+"2. ЦП: " + cp + "\n" +
+"3. КОМБО/ТРАНЗ: " + comboText + "\n" +
+"4. КРОСС ДК/ТРАНЗ -/-\n" +
+"5. МП " + mpText + "\n" +
+"6. А-ЧЕК: " + alphaCheck + "\n" +
+"7. СМАРТ: " + smart + "\n" +
+"8. PPI: " + ppi + "\n" +
+"9. ДЕТИ: взрослые\n" +
+"10. БС: не интересует\n" +
+"11. VOC на встрече: сообщил о VOC"
 
 navigator.clipboard.writeText(text)
+copyAnimation(btn)
+
 }
 
-/* ===== КРЕДИТКИ ===== */
-
-if(isCC){
-
-let text =
-type+"\n\n"+
-m.name+"\n\n"+
-"1. АКТИВ/ТРАНЗ "+activation+"/"+transaction+"\n"+
-"2. ЦП: "+cp+"\n"+
-"4. КРОСС ДК/ТРАНЗ -/-\n"+
-"5. МП "+mpText+"\n"+
-"6. А-ЧЕК: "+alphaCheck+"\n"+
-"7. СМАРТ: "+smart+"\n"+
-"8. PPI: "+ppi+"\n"+
-"9. ДЕТИ: "+kidsText+"\n"+
-"10. БС: не интересует\n"+
-"12. Коробочное страхование отказ\n"+
-"13. VOC на встрече: сообщил о VOC"
-
-navigator.clipboard.writeText(text)
-}
-
-/* кнопка */
+// анимация кнопки
+function copyAnimation(btn){
 
 btn.innerHTML="✅"
 
