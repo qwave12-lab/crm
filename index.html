@@ -554,14 +554,15 @@ function copyReport(btn, i) {
 
 let m = meetings[meetings.length - 1 - i]
 
+let services = m.services || []
+let nameLower = String(m.name).toLowerCase()
 let type = (m.type || "").toUpperCase()
 
 let isDC = type.includes("DC")
-let isTeen = type.includes("14") || type.includes("17")
 let isCC = type.includes("CC")
 
-let services = m.services || []
-// услуги
+/* услуги */
+
 let activation = services.includes("activation") ? "+" : "-"
 let transaction = services.includes("transaction") ? "+" : "-"
 let cp = services.includes("cp") ? "+" : "-"
@@ -569,21 +570,45 @@ let smart = services.includes("alphaSmart") ? "+" : "-"
 let ppi = services.includes("ppi") ? "+" : "-"
 let alphaCheck = services.includes("alphaCheck") ? "+" : ""
 
-let tag = ""
-let nameLower = String(m.name || "").toLowerCase()
+/* МП */
 
-if (nameLower.includes("orange")) tag = "ORANGE "
-else if (nameLower.includes("re")) tag = "RE "
-else if (nameLower.includes("t0")) tag = "T0 "
+let mpText = "не установил"
 
-// NDZ короткий формат
-if (m.status === "ndz") {
+if(services.includes("mp_ios_exists") || services.includes("mp_android_exists")){
+mpText = "было"
+}
+
+if(services.includes("mp_ios") || services.includes("mp_android")){
+mpText = "установил"
+}
+
+/* дети — рандом */
+
+let kidsOptions = [
+"взрослые",
+"нет детей",
+"не интересует",
+"уже есть детские карты",
+"отказался"
+]
+
+let kidsText = kidsOptions[Math.floor(Math.random()*kidsOptions.length)]
+
+/* ===== NDZ короткий ===== */
+
+if(m.status === "ndz"){
 
 let cleanName = m.name
+.replace(/orange/gi,"")
+.replace(/re/gi,"")
+.replace(/t0/gi,"")
+.trim()
 
-if (nameLower.includes("orange")) cleanName = m.name.replace(/orange/gi,"").trim()
-else if (nameLower.includes("re")) cleanName = m.name.replace(/re/gi,"").trim()
-else if (nameLower.includes("t0")) cleanName = m.name.replace(/t0/gi,"").trim()
+let tag = ""
+
+if(nameLower.includes("orange")) tag = "ORANGE "
+if(nameLower.includes("re")) tag = "RE "
+if(nameLower.includes("t0")) tag = "T0 "
 
 let text = tag + m.type + " " + cleanName
 
@@ -596,6 +621,9 @@ btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" 
 
 return
 }
+
+/* ===== ORANGE ===== */
+
 if(nameLower.includes("orange")){
 
 let text =
@@ -610,9 +638,7 @@ let text =
 "8. PPI: "+ppi+"\n"+
 "9. ДЕТИ: "+kidsText+"\n"+
 "10. БС: не интересует\n"+
-"11. Селфи: 0\n"+
-"12. Коробочное страхование отказ\n"+
-"13. VOC на встрече: -"
+"13. VOC на встрече: сообщил о VOC"
 
 navigator.clipboard.writeText(text)
 
@@ -623,11 +649,13 @@ btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" 
 
 return
 }
+
+/* ===== RE (очень короткий) ===== */
+
 if(nameLower.includes("re")){
 
 let text =
-m.type+"\n\n"+
-m.name+"\n\n"+
+"RE\n\n"+
 "1. АКТИВ/ТРАНЗ "+activation+"/"+transaction
 
 navigator.clipboard.writeText(text)
@@ -640,72 +668,64 @@ btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" 
 return
 }
 
-
-// МП
-let mpText="не установил"
-
-if(services.includes("mp_ios_exists") || services.includes("mp_android_exists")) mpText="было"
-
-if(services.includes("mp_ios") || services.includes("mp_android")) mpText="установил"
-
-// КОМБО
-let comboText="-"
+/* ===== ДЕБЕТОВЫЕ КАРТЫ ===== */
 
 if(isDC){
 
-if(m.bankOffer==="yes"){
+let comboText = "-"
 
-if(m.crossSale==="none") comboText="-/-"
-if(m.crossSale==="cc") comboText="Cross КК"
-if(m.crossSale==="combo") comboText="Cross Комбо"
-
+if(m.bankOffer==="yes" && m.crossSale==="combo"){
+comboText="-/-"
 }
 
-}
-let kidsOptions = [
-"взрослые",
-"нет детей",
-"не интересует",
-"уже есть детские карты",
-"отказался"
-]
-
-let kidsText = kidsOptions[Math.floor(Math.random()*kidsOptions.length)]
-// собираем строки
-let lines=[]
-
-lines.push(m.type)
-lines.push("")
-lines.push(m.name)
-lines.push("")
-
-lines.push("1. АКТИВ/ТРАНЗ "+activation+"/"+transaction)
-lines.push("2. ЦП: "+cp)
-
-if(isDC) lines.push("3. КОМБО/ТРАНЗ: "+comboText)
-
-if(isCC) lines.push("4. КРОСС ДК/ТРАНЗ -/-")
-
-lines.push("5. МП "+mpText)
-lines.push("6. А-ЧЕК: "+alphaCheck)
-lines.push("7. СМАРТ: "+smart)
-
-if(isCC) lines.push("8. PPI: "+ppi)
-
-lines.push("9. ДЕТИ: взрослые")
-lines.push("10. БС: не интересует")
-lines.push("11. VOC на встрече: сообщил о VOC")
-
-let text=lines.join("\n")
+let text =
+type+"\n\n"+
+m.name+"\n\n"+
+"1. АКТИВ/ТРАНЗ "+activation+"/"+transaction+"\n"+
+"2. ЦП: "+cp+"\n"+
+"3. КОМБО/ТРАНЗ: "+comboText+"\n"+
+"5. МП "+mpText+"\n"+
+"6. А-ЧЕК: "+alphaCheck+"\n"+
+"7. СМАРТ: "+smart+"\n"+
+"9. ДЕТИ: "+kidsText+"\n"+
+"10. БС: не интересует\n"+
+"13. VOC на встрече: сообщил о VOC"
 
 navigator.clipboard.writeText(text)
+}
+
+/* ===== КРЕДИТКИ ===== */
+
+if(isCC){
+
+let text =
+type+"\n\n"+
+m.name+"\n\n"+
+"1. АКТИВ/ТРАНЗ "+activation+"/"+transaction+"\n"+
+"2. ЦП: "+cp+"\n"+
+"4. КРОСС ДК/ТРАНЗ -/-\n"+
+"5. МП "+mpText+"\n"+
+"6. А-ЧЕК: "+alphaCheck+"\n"+
+"7. СМАРТ: "+smart+"\n"+
+"8. PPI: "+ppi+"\n"+
+"9. ДЕТИ: "+kidsText+"\n"+
+"10. БС: не интересует\n"+
+"12. Коробочное страхование отказ\n"+
+"13. VOC на встрече: сообщил о VOC"
+
+navigator.clipboard.writeText(text)
+}
+
+/* кнопка */
 
 btn.innerHTML="✅"
+
 setTimeout(()=>{
 btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><rect x="2" y="2" width="13" height="13" rx="2"></rect></svg>`
 },1000)
 
 }
+
 function toggleFullStats(){
 
 let block=document.getElementById("fullStats")
