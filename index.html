@@ -3,7 +3,7 @@
 <head>
  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <meta charset="UTF-8">
-<title>Pro Crm2</title>
+<title>Pro Crm</title>
 
 <style>
 /* стили — без изменений, только формат */
@@ -249,23 +249,7 @@ font-weight:600;
   </div>
 
   <br>
-  <b>PPI статистика</b><br>
-  Кредитных карт: <span id="kkCount">0</span><br>
-  PPI подключено: <span id="ppiCount">0</span><br>
-  PPI %: <span id="ppiPercent">0</span>%<br>
 
-  <b>Cross статистика</b><br>
-  Предложений банка: <span id="bankOffers">0</span><br>
-  Продано Cross: <span id="crossSales">0</span><br>
-  Конверсия: <span id="crossPercent">0</span>%<br>
-
-  <b>Доход за выбранный период</b><br>
-  Аванс: <span id="advance">0</span> ₽<br>
-  Остаток: <span id="rest">0</span> ₽<br>
-  Услуги: <span id="servicesIncome">0</span> ₽<br>
-  Cross: <span id="crossIncome">0</span> ₽<br>
-  <b>Итого: <span id="income">0</span> ₽</b>
-</div>
 
  
 
@@ -287,7 +271,7 @@ font-weight:600;
   Остаток: <span id="rest">0</span> ₽<br>
 Услуги: <span id="servicesIncome">0</span> ₽<br>
 Cross: <span id="crossIncome">0</span> ₽<br>
-<b>Итого: <span id="income">0</span> ₽</b>
+  <b>Итого: <span id="income">0</span> ₽</b>
 </div>
 
 <!-- Поиск и список -->
@@ -1356,10 +1340,13 @@ function setWeekFilter() {
   let start = new Date()
   start.setDate(start.getDate() - 7)
   
-  document.getElementById('startDate').value = start.toISOString().split('T')[0]
-  document.getElementById('endDate').value = end.toISOString().split('T')[0]
-  filterStartDate = start.toISOString().split('T')[0]
-  filterEndDate = end.toISOString().split('T')[0]
+  let startStr = start.toISOString().split('T')[0]
+  let endStr = end.toISOString().split('T')[0]
+  
+  document.getElementById('startDate').value = startStr
+  document.getElementById('endDate').value = endStr
+  filterStartDate = startStr
+  filterEndDate = endStr
   updatePeriodInfo()
   render()
 }
@@ -1369,10 +1356,13 @@ function setMonthFilter() {
   let start = new Date(now.getFullYear(), now.getMonth(), 1)
   let end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
   
-  document.getElementById('startDate').value = start.toISOString().split('T')[0]
-  document.getElementById('endDate').value = end.toISOString().split('T')[0]
-  filterStartDate = start.toISOString().split('T')[0]
-  filterEndDate = end.toISOString().split('T')[0]
+  let startStr = start.toISOString().split('T')[0]
+  let endStr = end.toISOString().split('T')[0]
+  
+  document.getElementById('startDate').value = startStr
+  document.getElementById('endDate').value = endStr
+  filterStartDate = startStr
+  filterEndDate = endStr
   updatePeriodInfo()
   render()
 }
@@ -1391,18 +1381,23 @@ function updatePeriodInfo() {
 }
 
 // Слушатели для ручного выбора дат
-document.getElementById('startDate')?.addEventListener('change', function(e) {
-  filterStartDate = e.target.value || null
-  updatePeriodInfo()
-  render()
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('startDate')?.addEventListener('change', function(e) {
+    filterStartDate = e.target.value || null
+    updatePeriodInfo()
+    render()
+  })
+
+  document.getElementById('endDate')?.addEventListener('change', function(e) {
+    filterEndDate = e.target.value || null
+    updatePeriodInfo()
+    render()
+  })
+  
+  // Устанавливаем сегодня по умолчанию при загрузке
+  setTodayFilter()
 })
 
-document.getElementById('endDate')?.addEventListener('change', function(e) {
-  filterEndDate = e.target.value || null
-  updatePeriodInfo()
-  render()
-})
-
-</script>
+</script>  <!-- ЭТО ЗАКРЫВАЕТ тег script -->
 </body>
 </html>
