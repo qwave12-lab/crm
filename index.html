@@ -922,102 +922,101 @@ function render() {
   // показываем последние сверху
   let reversed = [...meetings].reverse()
 
-  // ===== СБОР СТАТИСТИКИ =====
-  reversed.forEach((m, i) => {
-    // Статусы для всех
-    if (m.status === "transfer") transfers++
-    else if (m.status === "bankreject") rejects++
-    else if (m.status === "ndz") ndz++
-    else if (m.status === "ok") success++
+// ===== СБОР СТАТИСТИКИ =====
+reversed.forEach((m, i) => {
+  // Статусы для всех
+  if (m.status === "transfer") transfers++
+  else if (m.status === "bankreject") rejects++
+  else if (m.status === "ndz") ndz++
+  else if (m.status === "ok") success++
 
-    // Orange и RE проверка
-    let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-    let isRE = m.name && String(m.name).toLowerCase().includes("re")
+  // Orange и RE проверка
+  let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
+  let isRE = m.name && String(m.name).toLowerCase().includes("re")
 
-    if (isOrange) orangeTotal++
-    if (isRE) reTotal++
+  if (isOrange) orangeTotal++
+  if (isRE) reTotal++
 
-    // Проверяем дату для фильтра
-    let meetingDate = m.date
-    let dateInFilter = true
+  // Проверяем дату для фильтра
+  let meetingDate = m.date
+  let dateInFilter = true
+  
+  if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
+  if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
+
+  // ===== ДОХОД =====
+  // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
+  if (dateInFilter && m.status === "ok") {
+    advance += 300        // 300₽ сразу
+    rest += 100           // 100₽ в конце месяца
     
-    if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
-    if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
-
- // ===== ДОХОД =====
-// Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
-if (dateInFilter && m.status === "ok") {
-  advance += 300        // 300₽ сразу
-  rest += 100           // 100₽ в конце месяца
-  
-  // Доход от услуг (идет в общий доход, но отдельно не разбиваем)
-  if (m.income) {
-    servicesIncome += Number(m.income)  // услуги тоже в общий доход
-  }
-  
-  // Cross продажа = +350₽ (в остаток)
-  if (m.type === "DC" && m.bankOffer === "yes") {
-    if (m.crossSale === "cc" || m.crossSale === "combo") {
-      crossIncome += 350
-      rest += 350        // +350₽ в остаток за cross
+    // Доход от услуг
+    if (m.income) {
+      servicesIncome += Number(m.income)
+    }
+    
+    // Cross продажа = +350₽ (в остаток)
+    if (m.type === "DC" && m.bankOffer === "yes") {
+      if (m.crossSale === "cc" || m.crossSale === "combo") {
+        crossIncome += 350
+        rest += 350        // +350₽ в остаток за cross
+      }
     }
   }
-}
 
-    // ===== СТАТИСТИКА УСЛУГ =====
-    // Считаем для всех успешных (без фильтра дат)
-    if (m.status === "ok" && m.services && m.services.length > 0) {
+  // ===== СТАТИСТИКА УСЛУГ =====
+  if (m.status === "ok" && m.services && m.services.length > 0) {
 
-      // RE - влияют ТОЛЬКО на активацию и транзакцию
-      if (isRE) {
-        m.services.forEach(s => {
-          if (s === "activation") {
-            serviceStats.activation = (serviceStats.activation || 0) + 1
-            countForActivation++
-          }
-          if (s === "transaction") {
-            serviceStats.transaction = (serviceStats.transaction || 0) + 1
-            countForTransaction++
-          }
-        })
-      }
-      // Обычные клиенты (не Orange, не RE)
-      else if (!isOrange) {
-        m.services.forEach(s => {
-          serviceStats[s] = (serviceStats[s] || 0) + 1
-          
-          if (s === "activation") countForActivation++
-          else if (s === "transaction") countForTransaction++
-          else countForOther++
-        })
-
-        // МП статистика ТОЛЬКО для обычных
-        if (m.phoneType === "ios") {
-          iosTotal++
-          if (m.services.includes("mp_ios")) iosInstalled++
-          if (m.services.includes("mp_ios_exists")) iosExists++
+    // RE - влияют ТОЛЬКО на активацию и транзакцию
+    if (isRE) {
+      m.services.forEach(s => {
+        if (s === "activation") {
+          serviceStats.activation = (serviceStats.activation || 0) + 1
+          countForActivation++
         }
-        if (m.phoneType === "android") {
-          androidTotal++
-          if (m.services.includes("mp_android")) androidInstalled++
-          if (m.services.includes("mp_android_exists")) androidExists++
+        if (s === "transaction") {
+          serviceStats.transaction = (serviceStats.transaction || 0) + 1
+          countForTransaction++
         }
-
-        // PPI статистика
-        if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
-          kkCount++
-          if (m.services.includes("ppi")) ppiCount++
-        }
-
-        // Cross статистика
-        if (m.type === "DC" && m.bankOffer === "yes") {
-          bankOffers++
-          if (m.crossSale === "cc" || m.crossSale === "combo") crossSales++
-        }
-      }
-      // Orange полностью игнорируются
+      })
     }
-  })
+    // Обычные клиенты (не Orange, не RE)
+    else if (!isOrange) {
+      m.services.forEach(s => {
+        serviceStats[s] = (serviceStats[s] || 0) + 1
+        
+        if (s === "activation") countForActivation++
+        else if (s === "transaction") countForTransaction++
+        else countForOther++
+      })
+
+      // МП статистика
+      if (m.phoneType === "ios") {
+        iosTotal++
+        if (m.services.includes("mp_ios")) iosInstalled++
+        if (m.services.includes("mp_ios_exists")) iosExists++
+      }
+      if (m.phoneType === "android") {
+        androidTotal++
+        if (m.services.includes("mp_android")) iosInstalled++
+        if (m.services.includes("mp_android_exists")) iosExists++
+      }
+
+      // PPI статистика
+      if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+        kkCount++
+        if (m.services.includes("ppi")) ppiCount++
+      }
+
+      // Cross статистика
+      if (m.type === "DC" && m.bankOffer === "yes") {
+        bankOffers++
+        if (m.crossSale === "cc" || m.crossSale === "combo") crossSales++
+      }
+    }
+    // Orange игнорируются
+  }
+})
 
   // ===== РАСЧЁТ ПРОЦЕНТОВ =====
   let total = meetings.length
