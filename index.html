@@ -923,12 +923,23 @@ reversed.forEach((m, i) => {
   if (isOrange) orangeTotal++
   if (isRE) reTotal++
 
-  // Проверяем дату для фильтра
-  let meetingDate = m.date
-  let dateInFilter = true
-  
-  if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
-  if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
+// Проверяем дату для фильтра
+let meetingDate = m.date
+let dateInFilter = true
+
+if (filterStartDate && filterEndDate) {
+  // Преобразуем дату встречи из формата "DD.MM.YYYY" в "YYYY-MM-DD"
+  let meetingDateParts = meetingDate.split('.')
+  if (meetingDateParts.length === 3) {
+    let meetingDateFormatted = meetingDateParts[2] + '-' + meetingDateParts[1] + '-' + meetingDateParts[0]
+    
+    if (meetingDateFormatted < filterStartDate) dateInFilter = false
+    if (meetingDateFormatted > filterEndDate) dateInFilter = false
+  } else {
+    // Если формат не распознан, считаем что дата не подходит
+    dateInFilter = false
+  }
+}
 
  // ===== ДОХОД =====
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
