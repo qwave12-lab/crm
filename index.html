@@ -625,156 +625,113 @@ if (lower.startsWith("re")) {  // RE проверка
 
   return `<b>${name}</b>`
 }
-function copyReport(btn, i){
+function copyDayReport(){
 
-// получаем встречу
-let m = meetings[meetings.length - 1 - i]
+let d = new Date()
 
-let type = (m.type || "").toUpperCase()
-let services = m.services || []
-let name = String(m.name || "")
-let nameLower = name.toLowerCase()
-// услуги
-let activation = services.includes("activation") ? "+" : "-"
-let transaction = services.includes("transaction") ? "+" : "-"
-let cp = services.includes("cp") ? "+" : "-"
-let smart = services.includes("alphaSmart") ? "+" : "-"
-let ppi = services.includes("ppi") ? "+" : "-"
-let alphaCheck = services.includes("alphaCheck") ? "+" : "-"
+let today =
+String(d.getDate()).padStart(2,"0")+"."+
+String(d.getMonth()+1).padStart(2,"0")+"."+
+d.getFullYear()
 
-// mp
-let mpText = "не установил"
+let assigned = 0
+let success = 0
+let ndz = 0
+let reject = 0
+let orangeSuccess = 0
 
-if (services.includes("mp_ios_exists") || services.includes("mp_android_exists")){
-mpText = "было"
+let activation = 0
+let transaction = 0
+let cp = 0
+let ppi = 0
+let alphaCheck = 0
+let smart = 0
+let jku = 0
+
+let comboApproved = 0
+let comboIssued = 0
+
+let iosInstall = 0
+let androidInstall = 0
+let iosHad = 0
+let androidHad = 0
+
+meetings.forEach(m=>{
+
+if(!m.date) return
+
+let date = m.date.replaceAll("-",".").split("T")[0]
+
+if(date !== today) return
+
+assigned++
+
+let services = m.services ? m.services.split(",").map(s=>s.trim()) : []
+
+if(m.status==="ok") success++
+if(m.status==="ndz") ndz++
+if(m.status==="reject") reject++
+
+if(m.name && m.name.toLowerCase().includes("orange") && m.status==="ok"){
+orangeSuccess++
 }
 
-if (services.includes("mp_ios") || services.includes("mp_android")){
-mpText = "установил"
+if(services.includes("activation")) activation++
+if(services.includes("transaction")) transaction++
+if(services.includes("cp")) cp++
+if(services.includes("ppi")) ppi++
+if(services.includes("alphaCheck")) alphaCheck++
+if(services.includes("alphaSmart")) smart++
+if(services.includes("jku")) jku++
+
+if(m.crossSale==="combo"){
+comboApproved++
+if(services.includes("activation")) comboIssued++
 }
 
-// ---------------- RE ----------------
+if(m.phoneType==="ios") iosHad++
+if(m.phoneType==="android") androidHad++
 
-if(nameLower.includes("re")){
+if(services.includes("mp_ios")) iosInstall++
+if(services.includes("mp_android")) androidInstall++
 
-let cleanName = name.replace(/re/gi,"").trim()
+})
 
-let text = "RE " + type + " " + cleanName
-
-if(m.status === "ndz"){
-text += "\n\nНДЗ"
-}
-
-if(m.status === "transfer"){
-text += "\n\nПеренос"
-}
-
-navigator.clipboard.writeText(text)
-copyAnimation(btn)
-return
-}
-
-// ---------------- ОТКАЗ ----------------
-
-if(m.status === "reject" || m.status === "bankreject"){
+let voc = Math.floor(Math.random()*3)+1
 
 let text =
-type + "\n\n" +
-name + "\n\n" +
-"Отказ"
+today+"\n"+
+"Митин О.Р\n\n"+
+
+"1. Назначено встреч "+assigned+"\n"+
+"2. Проведено "+success+"\n"+
+"3. x"+success+" 🍊"+orangeSuccess+"\n"+
+"4. НДЗ "+ndz+"\n"+
+"5. Отказ "+reject+"\n"+
+"6. Актив "+activation+"\n"+
+"7. Транзакции "+transaction+"\n"+
+"8. Цп "+cp+"\n"+
+"9. PPI "+ppi+"\n"+
+"10. AlphaCheck "+alphaCheck+"\n"+
+"11. AlphaSmart "+smart+"\n"+
+"12. ЖКУ "+jku+"\n"+
+"13. Комбо одобрено/выдано "+comboApproved+"/"+comboIssued+"\n"+
+"14. Комбо транзакции 0\n"+
+"15. Кросс Дк 0\n"+
+"16. Кросс Дк транзакции 0\n"+
+"17. БС/Инвест 0\n"+
+"18. Короб. Стах. 0\n"+
+"19. Детские 0\n"+
+"20. Выдано Дк/ транзакции Дк 0/0\n"+
+"21. IOS установил "+iosInstall+"\n"+
+"22. Android установил "+androidInstall+"\n"+
+"23. IOS было у клиентов "+iosHad+"\n"+
+"24. Android было у клиентов "+androidHad+"\n"+
+"25. VOC "+voc
 
 navigator.clipboard.writeText(text)
-copyAnimation(btn)
-return
-}
 
-// ---------------- NDZ ----------------
-
-if(m.status === "ndz"){
-
-// orange ndz
-if(nameLower.includes("orange")){
-
-let cleanName = name.replace(/orange/gi,"").trim()
-
-let text =
-"🍊 X5 " + cleanName + "\n\n" +
-"НДЗ"
-
-navigator.clipboard.writeText(text)
-copyAnimation(btn)
-return
-
-}
-
-// обычный ndz
-
-let text =
-type + "\n\n" +
-name + "\n\n" +
-"НДЗ"
-
-navigator.clipboard.writeText(text)
-copyAnimation(btn)
-return
-
-}
-
-// ---------------- ORANGE ----------------
-
-if(nameLower.includes("orange")){
-
-let cleanName = name.replace(/orange/gi,"").trim()
-
-let text =
-"🍊 X5 " + cleanName + "\n\n" +
-"1. АКТИВ/ТРАНЗ " + activation + "/" + transaction + "\n" +
-"2. ЦП: " + cp + "\n" +
-"3. КОМБО/ТРАНЗ: -\n" +
-"4. КРОСС ДК/ТРАНЗ -/-\n" +
-"5. МП " + mpText + "\n" +
-"6. А-ЧЕК: " + alphaCheck + "\n" +
-"7. СМАРТ: " + smart + "\n" +
-"8. PPI: " + ppi + "\n" +
-"9. ДЕТИ: -\n" +
-"10. БС: -\n" +
-"11. VOC на встрече: сообщил о VOC"
-
-navigator.clipboard.writeText(text)
-copyAnimation(btn)
-return
-
-}
-
-// ---------------- ОБЫЧНЫЙ ОТЧЕТ ----------------
-
-let comboText = "нет предложения"
-
-if (m.bankOffer === "yes"){
-
-if (m.crossSale === "none") comboText = "отказ клиента"
-if (m.crossSale === "cc") comboText = "Cross КК"
-if (m.crossSale === "combo") comboText = "Cross Комбо"
-
-}
-
-let text =
-type + "\n\n" +
-name + "\n\n" +
-"1. АКТИВ/ТРАНЗ " + activation + "/" + transaction + "\n" +
-"2. ЦП: " + cp + "\n" +
-"3. КОМБО/ТРАНЗ: " + comboText + "\n" +
-"4. КРОСС ДК/ТРАНЗ -/-\n" +
-"5. МП " + mpText + "\n" +
-"6. А-ЧЕК: " + alphaCheck + "\n" +
-"7. СМАРТ: " + smart + "\n" +
-"8. PPI: " + ppi + "\n" +
-"9. ДЕТИ: взрослые\n" +
-"10. БС: не интересует\n" +
-"11. VOC на встрече: сообщил о VOC"
-
-navigator.clipboard.writeText(text)
-copyAnimation(btn)
+alert("Отчёт дня скопирован")
 
 }
 
