@@ -1182,20 +1182,6 @@ render()
   }
 }
 
-  // Управление сворачиванием
-  let btn=document.getElementById("toggleBtn")
-  let info=document.getElementById("collapsedInfo")
-  if(cardsCollapsed){
-    list.style.display="none"
-    info.style.display="block"
-    info.innerText="Скрыто клиентов: " + meetings.length
-    btn.innerText="Открыть ▼"
-  } else {
-    list.style.display="block"
-    info.style.display="none"
-    btn.innerText="Свернуть ▲"
-  }
-}
 
 /* старт */
 window.onload = function(){
