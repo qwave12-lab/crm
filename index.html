@@ -944,7 +944,31 @@ function render() {
 
 // ===== СБОР СТАТИСТИКИ =====
 reversed.forEach((m, i) => {
-// Статусы только в выбранном периоде
+  let meetingDate = m.date
+let dateInFilter = true
+
+// проверка фильтра дат
+if (filterStartDate && filterEndDate) {
+
+  if (meetingDate && meetingDate.includes(".")) {
+
+    let parts = meetingDate.split(".")
+    let formatted = parts[2] + "-" + parts[1] + "-" + parts[0]
+
+    if (formatted < filterStartDate) dateInFilter = false
+    if (formatted > filterEndDate) dateInFilter = false
+
+  } else {
+
+    if (meetingDate < filterStartDate) dateInFilter = false
+    if (meetingDate > filterEndDate) dateInFilter = false
+
+  }
+
+}
+let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
+let isRE = m.name && String(m.name).toLowerCase().includes("re")
+// считаем статусы
 if (dateInFilter) {
 
   if (m.status === "transfer") transfers++
@@ -952,37 +976,6 @@ if (dateInFilter) {
   else if (m.status === "ndz") ndz++
   else if (m.status === "ok") success++
 
-}
-
-  // Orange и RE проверка
-  let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-  let isRE = m.name && String(m.name).toLowerCase().includes("re")
-
-  if (isOrange) orangeTotal++
-  if (isRE) reTotal++
-
-// Проверяем дату для фильтра
-let meetingDate = m.date
-let dateInFilter = true
-
-// Если фильтр не установлен, показываем всё
-if (!filterStartDate || !filterEndDate) {
-  dateInFilter = true
-} else {
-  // Преобразуем дату встречи из формата "DD.MM.YYYY" в "YYYY-MM-DD"
-  if (meetingDate && meetingDate.includes('.')) {
-    let meetingDateParts = meetingDate.split('.')
-    if (meetingDateParts.length === 3) {
-      let meetingDateFormatted = meetingDateParts[2] + '-' + meetingDateParts[1] + '-' + meetingDateParts[0]
-      
-      if (meetingDateFormatted < filterStartDate) dateInFilter = false
-      if (meetingDateFormatted > filterEndDate) dateInFilter = false
-    }
-  } else {
-    // Если дата уже в формате YYYY-MM-DD
-    if (meetingDate < filterStartDate) dateInFilter = false
-    if (meetingDate > filterEndDate) dateInFilter = false
-  }
 }
 
  // ===== ДОХОД =====
