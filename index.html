@@ -715,7 +715,9 @@ function calculateIncome(list){
   }
   let total=0
   list.forEach(s=>{
-    if(prices[s]) total+=prices[s]
+   if(prices[s] !== undefined){
+  total += prices[s]
+}
   })
   return total
 }
@@ -946,7 +948,7 @@ reversed.forEach((m, i) => {
   if (m.status === "transfer") transfers++
   else if (m.status === "bankreject") rejects++
   else if (m.status === "ndz") ndz++
-  else if (m.status === "ok") success++
+  else if (m.status === "ok" && m.income > 0)success++
 
   // Orange и RE проверка
   let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
@@ -982,22 +984,26 @@ if (!filterStartDate || !filterEndDate) {
  // ===== ДОХОД =====
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
 if (dateInFilter && m.status === "ok") {
-  console.log('Доход для:', m.name, 'income:', m.income)
-  advance += 300        // 300₽ сразу
-  rest += 100           // 100₽ в конце месяца
-  
-  // Доход от услуг
+
+  advance += 300
+  rest += 100
+
   if (m.income) {
     servicesIncome += Number(m.income)
   }
-  
-  // Cross продажа = +350₽ (в остаток)
+
   if (m.type === "DC" && m.bankOffer === "yes") {
+
+    bankOffers++
+
     if (m.crossSale === "cc" || m.crossSale === "combo") {
+      crossSales++
       crossIncome += 350
-      rest += 350        // +350₽ в остаток за cross
+      rest += 350
     }
+
   }
+
 }
 
   // ===== СТАТИСТИКА УСЛУГ =====
