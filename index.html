@@ -304,7 +304,26 @@ let crossSales = 0
 
 let meetings=[]
 let cardsCollapsed=false
-
+// ===== ФОРМАТИРОВАНИЕ ДАТЫ =====
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return ""
+  
+  // Если дата в ISO формате (с T)
+  if (dateStr.includes('T')) {
+    let d = new Date(dateStr)
+    let day = d.getDate().toString().padStart(2, '0')
+    let month = (d.getMonth() + 1).toString().padStart(2, '0')
+    let year = d.getFullYear()
+    return `${day}.${month}.${year}`
+  }
+  
+  // Если дата уже в формате DD.MM.YYYY
+  if (dateStr.includes('.')) {
+    return dateStr
+  }
+  
+  return dateStr
+}
 function save(){
   localStorage.setItem("meetings",JSON.stringify(meetings))
 }
@@ -1170,7 +1189,7 @@ if (dateInFilter && m.status === "ok") {
       list.innerHTML += `
         <div class="card transfer">
           <input type="checkbox" class="clientSelect">
-          <span class="card-date">${m.date || ""}</span>
+          <span class="card-date">${formatDisplayDate(m.date)}</span>
           ${formatName(m.name, m.status)}
           <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
             <b>Комментарий:</b> ${m.comment || "-"}<br>
@@ -1183,7 +1202,7 @@ if (dateInFilter && m.status === "ok") {
       list.innerHTML += `
         <div class="card ${m.status}">
           <input type="checkbox" class="clientSelect">
-          <span class="card-date">${m.date || ""}</span>
+         <span class="card-date">${formatDisplayDate(m.date)}</span>
           ${formatName(m.name, m.status)}<br>${m.type || ""}<br>
           <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
             Телефон: ${m.phone || ""}<br>
