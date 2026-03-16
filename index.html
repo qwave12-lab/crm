@@ -945,17 +945,20 @@ function render() {
           else countForOther++ // для ЦП, ЖКУ, Смарт, Чек, PPI
         })
 
-        // МП статистика
-        if (m.phoneType === "ios") {
-          iosTotal++
-          if (m.services.includes("mp_ios")) iosInstalled++
-          if (m.services.includes("mp_ios_exists")) iosExists++
-        }
-        if (m.phoneType === "android") {
-          androidTotal++
-          if (m.services.includes("mp_android")) iosInstalled++
-          if (m.services.includes("mp_android_exists")) iosExists++
-        }
+ 
+   // МП статистика ТОЛЬКО для обычных (не Orange, не RE)
+if (!isOrange && !isRE) {
+  if (m.phoneType === "ios") {
+    iosTotal++
+    if (m.services.includes("mp_ios")) iosInstalled++
+    if (m.services.includes("mp_ios_exists")) iosExists++
+  }
+  if (m.phoneType === "android") {
+    androidTotal++
+    if (m.services.includes("mp_android")) androidInstalled++
+    if (m.services.includes("mp_android_exists")) androidExists++
+  }
+}
 
         // PPI статистика
         if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
