@@ -266,12 +266,12 @@ font-weight:600;
   Продано Cross: <span id="crossSales">0</span><br>
   Конверсия: <span id="crossPercent">0</span>%<br>
 
-  <b>Доход</b><br>
-  Аванс: <span id="advance">0</span> ₽<br>
-  Остаток: <span id="rest">0</span> ₽<br>
+ <b>Доход за выбранный период</b><br>
+Аванс: <span id="advance">0</span> ₽<br>
+Остаток: <span id="rest">0</span> ₽<br>
 Услуги: <span id="servicesIncome">0</span> ₽<br>
 Cross: <span id="crossIncome">0</span> ₽<br>
-  <b>Итого: <span id="income">0</span> ₽</b>
+<b>Итого: <span id="income">0</span> ₽</b>
 </div>
 
 <!-- Поиск и список -->
@@ -875,6 +875,8 @@ render()
 /* ==== ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА ==== */
 
 function render() {
+    console.log('render() вызван. Фильтр:', filterStartDate, filterEndDate)
+  console.log('Всего встреч:', meetings.length)
   let list = document.getElementById("meetings")
   list.innerHTML = ""
   let search = document.getElementById("searchInput")?.value?.toLowerCase() || ""
@@ -928,25 +930,26 @@ reversed.forEach((m, i) => {
   if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
   if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
 
-  // ===== ДОХОД =====
-  // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
-  if (dateInFilter && m.status === "ok") {
-    advance += 300        // 300₽ сразу
-    rest += 100           // 100₽ в конце месяца
-    
-    // Доход от услуг
-    if (m.income) {
-      servicesIncome += Number(m.income)
-    }
-    
-    // Cross продажа = +350₽ (в остаток)
-    if (m.type === "DC" && m.bankOffer === "yes") {
-      if (m.crossSale === "cc" || m.crossSale === "combo") {
-        crossIncome += 350
-        rest += 350        // +350₽ в остаток за cross
-      }
+ // ===== ДОХОД =====
+// Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
+if (dateInFilter && m.status === "ok") {
+  console.log('Доход для:', m.name, 'income:', m.income)
+  advance += 300        // 300₽ сразу
+  rest += 100           // 100₽ в конце месяца
+  
+  // Доход от услуг
+  if (m.income) {
+    servicesIncome += Number(m.income)
+  }
+  
+  // Cross продажа = +350₽ (в остаток)
+  if (m.type === "DC" && m.bankOffer === "yes") {
+    if (m.crossSale === "cc" || m.crossSale === "combo") {
+      crossIncome += 350
+      rest += 350        // +350₽ в остаток за cross
     }
   }
+}
 
   // ===== СТАТИСТИКА УСЛУГ =====
   if (m.status === "ok" && m.services && m.services.length > 0) {
@@ -969,39 +972,28 @@ reversed.forEach((m, i) => {
       m.services.forEach(s => {
         serviceStats[s] = (serviceStats[s] || 0) + 1
         
-        if (s === "activation") countForActivation++
+  if (s === "activation") countForActivation++
         else if (s === "transaction") countForTransaction++
         else countForOther++
       })
 
-      // МП статистика
-      if (m.phoneType === "ios") {
-        iosTotal++
-        if (m.services.includes("mp_ios")) iosInstalled++
-        if (m.services.includes("mp_ios_exists")) iosExists++
+      // МП статистика ТОЛЬКО для обычных клиентов
+      if (!isOrange && !isRE) {
+        if (m.phoneType === "ios") {
+          iosTotal++
+          if (m.services.includes("mp_ios")) iosInstalled++
+          if (m.services.includes("mp_ios_exists")) iosExists++
+        }
+        if (m.phoneType === "android") {
+          androidTotal++
+          if (m.services.includes("mp_android")) androidInstalled++
+          if (m.services.includes("mp_android_exists")) androidExists++
+        }
       }
-      if (m.phoneType === "android") {
-        androidTotal++
-        if (m.services.includes("mp_android")) iosInstalled++
-        if (m.services.includes("mp_android_exists")) iosExists++
-      }
-
-      // PPI статистика
-      if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
-        kkCount++
-        if (m.services.includes("ppi")) ppiCount++
-      }
-
-      // Cross статистика
-      if (m.type === "DC" && m.bankOffer === "yes") {
-        bankOffers++
-        if (m.crossSale === "cc" || m.crossSale === "combo") crossSales++
-      }
-    }
-    // Orange игнорируются
-  }
-})
-
+      // Orange игнорируются
+   } // закрываем else if (!isOrange)
+  } // закрываем if (m.status === "ok" && m.services)
+}) // закрываем reversed.forEach
   // ===== РАСЧЁТ ПРОЦЕНТОВ =====
   let total = meetings.length
 
