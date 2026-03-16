@@ -222,22 +222,49 @@ font-weight:600;
 <!-- СТАТИСТИКА -->
 <div class="panel">
   <h3>СТАТИСТИКА</h3>
+  
+  <!-- ФИЛЬТР ПО ДАТАМ -->
+  <div style="background:#f0f2f5; padding:12px; border-radius:12px; margin-bottom:15px;">
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <input type="date" id="startDate" style="flex:1; padding:10px;">
+      <input type="date" id="endDate" style="flex:1; padding:10px;">
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onclick="setTodayFilter()" style="flex:1; background:#34c759; padding:10px;">Сегодня</button>
+      <button onclick="setWeekFilter()" style="flex:1; background:#ff9500; padding:10px;">Неделя</button>
+      <button onclick="setMonthFilter()" style="flex:1; background:#007aff; padding:10px;">Март</button>
+    </div>
+    <div style="margin-top:10px; font-size:14px; color:#666;" id="periodInfo"></div>
+  </div>
 
-<div id="shortStats"></div>
+  <div id="shortStats"></div>
 
-<button onclick="toggleFullStats()" id="statsBtn">
-Подробнее ▼
-</button>
-<button onclick="togglePlan()" id="planBtn">
-План на март 📊
-</button>
-<button onclick="copyDayReport()">Отчёт дня 📋</button>
+  <button onclick="toggleFullStats()" id="statsBtn">Подробнее ▼</button>
+  <button onclick="togglePlan()" id="planBtn">План на март 📊</button>
+  <button onclick="copyDayReport()">Отчёт дня 📋</button>
 
-<div id="planBlock" style="display:none;margin-top:10px"></div>
-<div id="fullStats" style="display:none">
+  <div id="planBlock" style="display:none;margin-top:10px"></div>
+  <div id="fullStats" style="display:none">
+    <div id="fullStatsContent"></div>
+  </div>
 
-<div id="fullStatsContent"></div>
+  <br>
+  <b>PPI статистика</b><br>
+  Кредитных карт: <span id="kkCount">0</span><br>
+  PPI подключено: <span id="ppiCount">0</span><br>
+  PPI %: <span id="ppiPercent">0</span>%<br>
 
+  <b>Cross статистика</b><br>
+  Предложений банка: <span id="bankOffers">0</span><br>
+  Продано Cross: <span id="crossSales">0</span><br>
+  Конверсия: <span id="crossPercent">0</span>%<br>
+
+  <b>Доход за выбранный период</b><br>
+  Аванс: <span id="advance">0</span> ₽<br>
+  Остаток: <span id="rest">0</span> ₽<br>
+  Услуги: <span id="servicesIncome">0</span> ₽<br>
+  Cross: <span id="crossIncome">0</span> ₽<br>
+  <b>Итого: <span id="income">0</span> ₽</b>
 </div>
 
  
@@ -904,19 +931,26 @@ function render() {
     if (isOrange) orangeTotal++
     if (isRE) reTotal++
 
-    // Доход для всех успешных
-    if (m.status === "ok") {
-      advance += 300
-      rest += 100
-      servicesIncome += Number(m.income || 0)
+   // Проверяем, попадает ли встреча в выбранный период
+let meetingDate = m.date
+let dateInFilter = true
 
-      if (m.type === "DC" && m.bankOffer === "yes") {
-        if (m.crossSale === "cc" || m.crossSale === "combo") {
-          crossIncome += 350
-          rest += 350
-        }
-      }
+if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
+if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
+
+// Доход только для встреч в выбранном периоде
+if (dateInFilter && m.status === "ok") {
+  advance += 300
+  rest += 100
+  servicesIncome += Number(m.income || 0)
+
+  if (m.type === "DC" && m.bankOffer === "yes") {
+    if (m.crossSale === "cc" || m.crossSale === "combo") {
+      crossIncome += 350
+      rest += 350
     }
+  }
+}
 
     // ===== СТАТИСТИКА УСЛУГ =====
     if (m.status === "ok" && m.services && m.services.length > 0) {
@@ -1292,7 +1326,71 @@ id:id
 .catch(err=>console.log("DELETE ERROR:",err))
 
 }
+// ===== ФИЛЬТР ПО ДАТАМ =====
+let filterStartDate = null
+let filterEndDate = null
 
+function setTodayFilter() {
+  let today = new Date().toISOString().split('T')[0]
+  document.getElementById('startDate').value = today
+  document.getElementById('endDate').value = today
+  filterStartDate = today
+  filterEndDate = today
+  updatePeriodInfo()
+  render()
+}
+
+function setWeekFilter() {
+  let end = new Date()
+  let start = new Date()
+  start.setDate(start.getDate() - 7)
+  
+  document.getElementById('startDate').value = start.toISOString().split('T')[0]
+  document.getElementById('endDate').value = end.toISOString().split('T')[0]
+  filterStartDate = start.toISOString().split('T')[0]
+  filterEndDate = end.toISOString().split('T')[0]
+  updatePeriodInfo()
+  render()
+}
+
+function setMonthFilter() {
+  let now = new Date()
+  let start = new Date(now.getFullYear(), now.getMonth(), 1)
+  let end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  
+  document.getElementById('startDate').value = start.toISOString().split('T')[0]
+  document.getElementById('endDate').value = end.toISOString().split('T')[0]
+  filterStartDate = start.toISOString().split('T')[0]
+  filterEndDate = end.toISOString().split('T')[0]
+  updatePeriodInfo()
+  render()
+}
+
+function updatePeriodInfo() {
+  let info = document.getElementById('periodInfo')
+  if (filterStartDate && filterEndDate) {
+    if (filterStartDate === filterEndDate) {
+      info.innerHTML = `📅 Период: ${filterStartDate}`
+    } else {
+      info.innerHTML = `📅 Период: ${filterStartDate} — ${filterEndDate}`
+    }
+  } else {
+    info.innerHTML = '📅 Период: всё время'
+  }
+}
+
+// Слушатели для ручного выбора дат
+document.getElementById('startDate')?.addEventListener('change', function(e) {
+  filterStartDate = e.target.value || null
+  updatePeriodInfo()
+  render()
+})
+
+document.getElementById('endDate')?.addEventListener('change', function(e) {
+  filterEndDate = e.target.value || null
+  updatePeriodInfo()
+  render()
+})
 
 </script>
 </body>
