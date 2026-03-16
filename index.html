@@ -127,6 +127,18 @@ display:inline-block;
 text-transform:uppercase;
 margin-bottom:4px;
 }
+.tag-re{
+  background:#d4edda;  /* светло-зелёный */
+  color:#155724;       /* тёмно-зелёный */
+  padding:5px 10px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:1px;
+  display:inline-block;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
 
 .tag-reject{
 background:#ffe5e5;
@@ -463,32 +475,35 @@ box.innerHTML+=`
     </div>
   `
 }
-function formatName(name,status){
+function formatName(name, status) {
+  if (!name) return ""
 
-if(!name) return ""
+  let lower = name.toLowerCase()
 
-let lower=name.toLowerCase()
+  if (lower.includes("orange")) {
+    let clean = name.replace(/orange/gi, "").trim()
+    return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
+  }
+  
+  if (lower.includes("re")) {  // RE проверка
+    let clean = name.replace(/re/gi, "").trim()
+    return `<div class="tag-re">RE</div><b>${clean}</b>`
+  }
 
-if(lower.includes("orange")){
-let clean=name.replace(/orange/gi,"").trim()
-return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
-}
+  if (lower.includes("t0")) {
+    let clean = name.replace(/t0/gi, "").trim()
+    return `<div class="tag-t0">T0</div><b>${clean}</b>`
+  }
 
-if(lower.includes("t0")){
-let clean=name.replace(/t0/gi,"").trim()
-return `<div class="tag-t0">T0</div><b>${clean}</b>`
-}
+  if (status === "ndz") {
+    return `<div class="tag-ndz">НДЗ</div><b>${name}</b>`
+  }
 
-if(status==="ndz"){
-return `<div class="tag-ndz">НДЗ</div><b>${name}</b>`
-}
+  if (status === "bankreject") {
+    return `<div class="tag-reject">ОТКАЗ БАНКА</div><b>${name}</b>`
+  }
 
-if(status==="bankreject"){
-return `<div class="tag-reject">ОТКАЗ БАНКА</div><b>${name}</b>`
-}
-
-return `<b>${name}</b>`
-
+  return `<b>${name}</b>`
 }
 function copyReport(btn,i){
 
@@ -845,103 +860,120 @@ render()
 }
 
 /* ==== ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА ==== */
-function render(){
+
+  function render(){
   let list=document.getElementById("meetings")
   list.innerHTML=""
   let search=document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
-  // СБРОС ВСЕХ СЧЁТЧИКОВ
+  // СЧЁТЧИКИ
   let transfers=0, success=0, rejects=0, ndz=0
-  let regularSuccess = 0 // ТОЛЬКО обычные успешные (без Orange)
+  let regularSuccess = 0  // обычные успешные (без Orange и RE)
   let kkCount=0, ppiCount=0
   let iosTotal=0, androidTotal=0
   let iosInstalled=0, androidInstalled=0
   let iosExists=0, androidExists=0
   let orangeTotal = 0
+  let reTotal = 0
   let advance=0, rest=0, servicesIncome=0, crossIncome=0
   bankOffers=0
   crossSales=0
   let serviceStats={}
 
-  // показываем последние сверху — используем reversed копию
+  // показываем последние сверху
   let reversed=[...meetings].reverse()
   
-  // ===== СБОР СТАТИСТИКИ (ОДИН ПРОХОД) =====
+  // ===== СБОР СТАТИСТИКИ =====
   reversed.forEach((m,i)=>{
-    // Статусы
-    if(m.status === "transfer") {
-      transfers++
-    }
-    else if(m.status === "bankreject") {
-      rejects++
-    }
-    else if(m.status === "ndz") {
-      ndz++
-    }
-    else if(m.status === "ok") {
-      success++ // все успешные (включая Orange)
-    }
+    // Статусы (для всех)
+    if(m.status === "transfer") transfers++
+    else if(m.status === "bankreject") rejects++
+    else if(m.status === "ndz") ndz++
+    else if(m.status === "ok") success++
     
-    // Orange проверка
+    // Orange и RE проверка
     let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
-    if(isOrange) {
-      orangeTotal++
-    }
+    let isRE = m.name && String(m.name).toLowerCase().includes("re")
+    
+    if(isOrange) orangeTotal++
+    if(isRE) reTotal++
 
-    // Для обычных успешных клиентов (НЕ Orange)
-    if(!isOrange && m.status === "ok") {
-      regularSuccess++ // считаем обычных успешных
-      
-      // Считаем услуги
-      if(m.services) {
-        m.services.forEach(s => {
-          serviceStats[s] = (serviceStats[s] || 0) + 1
-        })
-      }
-      
-      // iOS статистика
-      if(m.phoneType === "ios") {
-        iosTotal++
-        if(m.services && m.services.includes("mp_ios")) iosInstalled++
-        if(m.services && m.services.includes("mp_ios_exists")) iosExists++
-      }
-      // Android статистика
-      if(m.phoneType === "android") {
-        androidTotal++
-        if(m.services && m.services.includes("mp_android")) androidInstalled++
-        if(m.services && m.services.includes("mp_android_exists")) androidExists++
-      }
-      
-      // PPI статистика
-      if(m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
-        kkCount++
-        if(m.services && m.services.includes("ppi")) ppiCount++
-      }
-      
-      // Cross статистика
-      if(m.type === "DC" && m.bankOffer === "yes") {
-        bankOffers++
-        if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
-      }
-    }
-
-    // Доходы (только успешные, ВСЕ клиенты включая Orange)
-    if(m.status==="ok"){
+    // Для успешных встреч считаем доход (все, включая Orange и RE)
+    if(m.status === "ok"){
       advance += 300
       rest += 100
       servicesIncome += Number(m.income || 0)
       
-      if(m.type==="DC" && m.bankOffer==="yes"){
-        if(m.crossSale==="cc" || m.crossSale==="combo"){
+      if(m.type === "DC" && m.bankOffer === "yes"){
+        if(m.crossSale === "cc" || m.crossSale === "combo"){
           crossIncome += 350
           rest += 350
         }
       }
     }
+
+    // ===== СТАТИСТИКА УСЛУГ =====
+    if(m.status === "ok" && m.services) {
+      
+      if(isRE) {
+        // RE влияет ТОЛЬКО на активацию
+        m.services.forEach(s => {
+          if(s === "activation") {
+            serviceStats[s] = (serviceStats[s] || 0) + 1
+          }
+          // все остальные услуги RE игнорируем
+        })
+      }
+      else if(!isOrange) {
+        // Обычные клиенты (не Orange, не RE) влияют на все услуги
+        m.services.forEach(s => {
+          serviceStats[s] = (serviceStats[s] || 0) + 1
+        })
+        
+        // МП статистика только для обычных
+        if(m.phoneType === "ios") {
+          iosTotal++
+          if(m.services.includes("mp_ios")) iosInstalled++
+          if(m.services.includes("mp_ios_exists")) iosExists++
+        }
+        if(m.phoneType === "android") {
+          androidTotal++
+          if(m.services.includes("mp_android")) iosInstalled++
+          if(m.services.includes("mp_android_exists")) iosExists++
+        }
+        
+        // PPI статистика только для обычных
+        if(m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+          kkCount++
+          if(m.services.includes("ppi")) ppiCount++
+        }
+        
+        // Cross статистика только для обычных
+        if(m.type === "DC" && m.bankOffer === "yes") {
+          bankOffers++
+          if(m.crossSale === "cc" || m.crossSale === "combo") crossSales++
+        }
+      }
+      // Orange полностью игнорируем в статистике услуг
+    }
   })
 
   // ===== РАСЧЁТ ПРОЦЕНТОВ =====
   let total = meetings.length
+  
+  // Количество обычных успешных (для процентов услуг)
+  // Это success минус Orange и RE успешные
+  let orangeSuccess = meetings.filter(m => 
+    m.status === "ok" && m.name && String(m.name).toLowerCase().includes("orange")
+  ).length
+  
+  let reSuccess = meetings.filter(m => 
+    m.status === "ok" && m.name && String(m.name).toLowerCase().includes("re")
+  ).length
+  
+  regularSuccess = success - orangeSuccess - reSuccess
+
+  // Общие проценты
   let transferPercent = total>0 ? Math.round(transfers/total*100) : 0
   let successPercent  = total>0 ? Math.round(success/total*100) : 0
   let rejectPercent   = total>0 ? Math.round(rejects/total*100) : 0
@@ -949,7 +981,7 @@ function render(){
   let crossPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
   ppiPercent = kkCount>0 ? Math.round(ppiCount/kkCount*100) : 0
 
-  // Проценты услуг ТОЛЬКО от обычных успешных встреч (regularSuccess)
+  // Проценты услуг (от обычных успешных)
   let activationPercent = regularSuccess>0 ? Math.round((serviceStats.activation || 0)/regularSuccess*100) : 0
   transactionPercent = regularSuccess>0 ? Math.round((serviceStats.transaction || 0)/regularSuccess*100) : 0
   let cpPercent = regularSuccess>0 ? Math.round((serviceStats.cp || 0)/regularSuccess*100) : 0
@@ -957,7 +989,7 @@ function render(){
   let smartPercent = regularSuccess>0 ? Math.round((serviceStats.alphaSmart || 0)/regularSuccess*100) : 0
   let checkPercent = regularSuccess>0 ? Math.round((serviceStats.alphaCheck || 0)/regularSuccess*100) : 0
   
-  // МП проценты (только от обычных успешных)
+  // МП проценты
   iosPercentShort = iosTotal>0 ? Math.round((iosInstalled+iosExists)/iosTotal*100) : 0
   androidPercentShort = androidTotal>0 ? Math.round((androidInstalled+androidExists)/androidTotal*100) : 0
 
@@ -1001,6 +1033,7 @@ function render(){
   // Краткая статистика
   document.getElementById("shortStats").innerHTML = `
     <div class="statsRow"><span>🍊 Orange встреч</span><span>${orangeTotal}</span></div>
+    <div class="statsRow"><span>🟢 RE встреч</span><span>${reTotal}</span></div>
     <br>
     <div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
     <div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
@@ -1024,18 +1057,17 @@ function render(){
   // Полная статистика
   document.getElementById("fullStatsContent").innerHTML = `
     Всего встреч: ${total}<br>
-    Успешные (ok): ${success} (включая Orange)<br>
-    Успешные обычные: ${regularSuccess} (без Orange)<br>
+    Успешные (ok): ${success}<br>
+    Успешные обычные: ${regularSuccess}<br>
+    Orange успешные: ${orangeSuccess}<br>
+    RE успешные: ${reSuccess}<br>
     Переносы: ${transfers}<br>
-    Отказы банка: ${rejects}<br>
+    Отказы: ${rejects}<br>
     НДЗ: ${ndz}<br>
-    % успешных: ${successPercent}%<br>
-    % переносов: ${transferPercent}%<br>
-    % отказов: ${rejectPercent}%<br>
-    % НДЗ: ${ndzPercent}%<br><br>
-    <b>Статистика услуг (только обычные клиенты)</b><br>
+    <br>
+    <b>Статистика услуг (только обычные + RE учитываются только в активации)</b><br>
     ${statsHTML}
-    <br><br>
+    <br>
     <b>PPI статистика</b><br>
     Кредитных карт: ${kkCount}<br>
     PPI подключено: ${ppiCount}<br>
@@ -1051,7 +1083,7 @@ function render(){
   let androidNot = androidTotal - androidInstalled - androidExists
 
   document.getElementById("fullStatsContent").innerHTML +=
-    `<br><b>МП статистика (только обычные клиенты)</b><br>
+    `<br><b>МП статистика</b><br>
     <b>IOS</b><br>
     всего: ${iosTotal}<br>
     установил: ${iosInstalled}<br>
@@ -1066,7 +1098,7 @@ function render(){
     конверсия: ${androidPercentShort}%<br>
   `
 
-  // ===== РЕНДЕРИМ КАРТОЧКИ (с фильтром поиска) =====
+  // ===== РЕНДЕРИМ КАРТОЧКИ =====
   reversed.forEach((m,i)=>{
     let text=(String(m.name) + " " + (m.date || "")).toLowerCase()
     if(search && !text.includes(search)) return
@@ -1134,6 +1166,21 @@ function render(){
       `
     }
   })
+
+  // Управление сворачиванием
+  let btn=document.getElementById("toggleBtn")
+  let info=document.getElementById("collapsedInfo")
+  if(cardsCollapsed){
+    list.style.display="none"
+    info.style.display="block"
+    info.innerText="Скрыто клиентов: " + meetings.length
+    btn.innerText="Открыть ▼"
+  } else {
+    list.style.display="block"
+    info.style.display="none"
+    btn.innerText="Свернуть ▲"
+  }
+}
 
   // Управление сворачиванием
   let btn=document.getElementById("toggleBtn")
