@@ -903,15 +903,21 @@ function render() {
   let iosExists = 0, androidExists = 0
   let orangeTotal = 0
   let reTotal = 0
-  let advance = 0, rest = 0, servicesIncome = 0, crossIncome = 0
+  
+  // ДОХОД - сбрасываем в 0
+  let advance = 0
+  let rest = 0
+  let servicesIncome = 0
+  let crossIncome = 0
   bankOffers = 0
   crossSales = 0
+  
   let serviceStats = {}
   
   // СЧЁТЧИКИ ДЛЯ БАЗЫ ПРОЦЕНТОВ
-  let countForActivation = 0  // кто влияет на активацию
-  let countForTransaction = 0 // кто влияет на транзакцию
-  let countForOther = 0       // кто влияет на остальные услуги (обычные)
+  let countForActivation = 0
+  let countForTransaction = 0
+  let countForOther = 0
 
   // показываем последние сверху
   let reversed = [...meetings].reverse()
@@ -931,28 +937,35 @@ function render() {
     if (isOrange) orangeTotal++
     if (isRE) reTotal++
 
-   // Проверяем, попадает ли встреча в выбранный период
-let meetingDate = m.date
-let dateInFilter = true
+    // Проверяем дату для фильтра
+    let meetingDate = m.date
+    let dateInFilter = true
+    
+    if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
+    if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
 
-if (filterStartDate && meetingDate < filterStartDate) dateInFilter = false
-if (filterEndDate && meetingDate > filterEndDate) dateInFilter = false
-
-// Доход только для встреч в выбранном периоде
+ // ===== ДОХОД =====
+// Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
 if (dateInFilter && m.status === "ok") {
-  advance += 300
-  rest += 100
-  servicesIncome += Number(m.income || 0)
-
+  advance += 300        // 300₽ сразу
+  rest += 100           // 100₽ в конце месяца
+  
+  // Доход от услуг (идет в общий доход, но отдельно не разбиваем)
+  if (m.income) {
+    servicesIncome += Number(m.income)  // услуги тоже в общий доход
+  }
+  
+  // Cross продажа = +350₽ (в остаток)
   if (m.type === "DC" && m.bankOffer === "yes") {
     if (m.crossSale === "cc" || m.crossSale === "combo") {
       crossIncome += 350
-      rest += 350
+      rest += 350        // +350₽ в остаток за cross
     }
   }
 }
 
     // ===== СТАТИСТИКА УСЛУГ =====
+    // Считаем для всех успешных (без фильтра дат)
     if (m.status === "ok" && m.services && m.services.length > 0) {
 
       // RE - влияют ТОЛЬКО на активацию и транзакцию
@@ -968,31 +981,27 @@ if (dateInFilter && m.status === "ok") {
           }
         })
       }
-      // Обычные клиенты (не Orange, не RE) - влияют на всё
+      // Обычные клиенты (не Orange, не RE)
       else if (!isOrange) {
         m.services.forEach(s => {
           serviceStats[s] = (serviceStats[s] || 0) + 1
           
-          // Считаем базу для каждого типа услуг
           if (s === "activation") countForActivation++
           else if (s === "transaction") countForTransaction++
-          else countForOther++ // для ЦП, ЖКУ, Смарт, Чек, PPI
+          else countForOther++
         })
 
- 
-   // МП статистика ТОЛЬКО для обычных (не Orange, не RE)
-if (!isOrange && !isRE) {
-  if (m.phoneType === "ios") {
-    iosTotal++
-    if (m.services.includes("mp_ios")) iosInstalled++
-    if (m.services.includes("mp_ios_exists")) iosExists++
-  }
-  if (m.phoneType === "android") {
-    androidTotal++
-    if (m.services.includes("mp_android")) androidInstalled++
-    if (m.services.includes("mp_android_exists")) androidExists++
-  }
-}
+        // МП статистика ТОЛЬКО для обычных
+        if (m.phoneType === "ios") {
+          iosTotal++
+          if (m.services.includes("mp_ios")) iosInstalled++
+          if (m.services.includes("mp_ios_exists")) iosExists++
+        }
+        if (m.phoneType === "android") {
+          androidTotal++
+          if (m.services.includes("mp_android")) androidInstalled++
+          if (m.services.includes("mp_android_exists")) androidExists++
+        }
 
         // PPI статистика
         if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
@@ -1021,7 +1030,7 @@ if (!isOrange && !isRE) {
   let crossPercent = bankOffers > 0 ? Math.round(crossSales / bankOffers * 100) : 0
   ppiPercent = kkCount > 0 ? Math.round(ppiCount / kkCount * 100) : 0
 
-  // Проценты услуг от правильной базы
+  // Проценты услуг
   let activationPercent = countForActivation > 0 ? Math.round((serviceStats.activation || 0) / countForActivation * 100) : 0
   transactionPercent = countForTransaction > 0 ? Math.round((serviceStats.transaction || 0) / countForTransaction * 100) : 0
   let cpPercent = countForOther > 0 ? Math.round((serviceStats.cp || 0) / countForOther * 100) : 0
@@ -1034,16 +1043,19 @@ if (!isOrange && !isRE) {
   androidPercentShort = androidTotal > 0 ? Math.round((androidInstalled + androidExists) / androidTotal * 100) : 0
 
   // ===== ОБНОВЛЕНИЕ DOM =====
+  // Доход
   document.getElementById("advance").innerText = advance
   document.getElementById("rest").innerText = rest
   document.getElementById("servicesIncome").innerText = servicesIncome
   document.getElementById("crossIncome").innerText = crossIncome
   document.getElementById("income").innerText = advance + rest + servicesIncome + crossIncome
 
+  // Cross статистика
   document.getElementById("bankOffers").innerText = bankOffers
   document.getElementById("crossSales").innerText = crossSales
   document.getElementById("crossPercent").innerText = crossPercent
 
+  // PPI статистика
   document.getElementById("kkCount").innerText = kkCount
   document.getElementById("ppiCount").innerText = ppiCount
   document.getElementById("ppiPercent").innerText = ppiPercent
