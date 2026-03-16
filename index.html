@@ -561,6 +561,13 @@ let isTeen = type.includes("14") || type.includes("17")
 let isCC = type.includes("CC")
 
 let services = m.services || []
+// услуги
+let activation = services.includes("activation") ? "+" : "-"
+let transaction = services.includes("transaction") ? "+" : "-"
+let cp = services.includes("cp") ? "+" : "-"
+let smart = services.includes("alphaSmart") ? "+" : "-"
+let ppi = services.includes("ppi") ? "+" : "-"
+let alphaCheck = services.includes("alphaCheck") ? "+" : ""
 
 let tag = ""
 let nameLower = String(m.name || "").toLowerCase()
@@ -632,13 +639,7 @@ btn.innerHTML=`<svg class="copyIcon" width="18" height="18" viewBox="0 0 24 24" 
 
 return
 }
-// услуги
-let activation = services.includes("activation") ? "+" : "-"
-let transaction = services.includes("transaction") ? "+" : "-"
-let cp = services.includes("cp") ? "+" : "-"
-let smart = services.includes("alphaSmart") ? "+" : "-"
-let ppi = services.includes("ppi") ? "+" : "-"
-let alphaCheck = services.includes("alphaCheck") ? "+" : ""
+
 
 // МП
 let mpText="не установил"
@@ -1014,7 +1015,7 @@ render()
 /* ==== ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА ==== */
 
 function render() {
-    console.log('render() вызван. Фильтр:', filterStartDate, filterEndDate)
+
   console.log('Всего встреч:', meetings.length)
   let list = document.getElementById("meetings")
   list.innerHTML = ""
@@ -1398,7 +1399,7 @@ loadFromSheet()
 }
 function copyDayReport(){
 
-let today=new Date().toLocaleDateString("ru-RU")
+let today = new Date().toISOString().split('T')[0]
 
 let todayMeetings=meetings.filter(m=>m.date===today)
 
