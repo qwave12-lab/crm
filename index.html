@@ -557,9 +557,8 @@ let m = meetings[meetings.length - 1 - i]
 
 let type = (m.type || "").toUpperCase()
 let services = m.services || []
-let name = m.name || ""
+let name = String(m.name || "")
 let nameLower = name.toLowerCase()
-
 // услуги
 let activation = services.includes("activation") ? "+" : "-"
 let transaction = services.includes("transaction") ? "+" : "-"
