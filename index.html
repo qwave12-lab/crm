@@ -981,10 +981,19 @@ else if (status === "ok") success++
 
 }
 
- // ===== ДОХОД =====
-// Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
+// ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
 
+  // базовый доход встречи
+  advance += 300
+  rest += 100
+
+  // услуги
+  if (m.income) {
+    servicesIncome += Number(m.income)
+  }
+
+  // PPI статистика
   if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
     kkCount++
     if (m.services && m.services.includes("ppi")) {
@@ -992,16 +1001,7 @@ if (dateInFilter && status === "ok") {
     }
   }
 
-  // если доход уже записан в таблице
-  if (m.income && Number(m.income) > 0) {
-    servicesIncome += Number(m.income)
-  } 
-  // если это новая встреча CRM
-  else {
-    advance += 300
-    rest += 100
-  }
-
+  // Cross
   if (m.type === "DC" && m.bankOffer === "yes") {
 
     bankOffers++
