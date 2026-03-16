@@ -491,7 +491,7 @@ function renderServices(){
     `
   }
   // CC-специфично
-  if(type==="СС" || type==="СС1" || type==="СС2"){
+  if(type===CC" || type==="CC1" || type==="CC2"){
     box.innerHTML+=`
       <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
     `
@@ -652,7 +652,7 @@ function updateOfferBlock(){
   let bankOffer=document.getElementById("bankOffer")
   let crossBlock=document.getElementById("crossBlock")
 
-  if(type==="СС" || type==="СС1" || type==="СС2"){
+  if(type==="CC" || type==="CC1" || type==="CC2"){
 
     ageSelect.style.display="none"
     bankOffer.style.display="none"
@@ -983,7 +983,7 @@ else if (status === "ok") success++
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
 if (dateInFilter && status === "ok") {
 
-  if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
+  if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
     kkCount++
     if (m.services && m.services.includes("ppi")) {
       ppiCount++
