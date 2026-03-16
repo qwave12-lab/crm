@@ -1490,18 +1490,41 @@ function copyReport(id){
 let m = meetings.find(x => x.id == id)
 if(!m) return
 
-let services = Array.isArray(m.services) && m.services.length
-? m.services.join(", ")
-: "-"
+let services = Array.isArray(m.services) ? m.services : []
+
+let has = s => services.includes(s)
+
+let act = has("activation") ? "+" : "-"
+let tr = has("transaction") ? "+" : "-"
+let cp = has("cp") ? "+" : "-"
+let mp = (has("mp_ios") || has("mp_android")) ? "+" : "-"
+let acheck = has("alphaCheck") ? "+" : "-"
+let smart = has("alphaSmart") ? "+" : "-"
+let ppi = has("ppi") ? "+" : "-"
+let jku = has("jku") ? "+" : "-"
+
+let cross = "-/-"
+
+if(m.crossSale === "combo") cross = "+/+"
+if(m.crossSale === "cc") cross = "+/+"
+
+let kids = m.family === "child" ? "дети" : "взрослые"
 
 let text =
-m.date+"\n"+
-m.name+"\n\n"+
-"Продукт: "+(m.product || "-")+"\n"+
-"Телефон: "+(m.phone || "-")+"\n\n"+
-"Услуги: "+services+"\n"+
-"Статус: "+m.status+"\n"+
-"Cross: "+(m.cross || "-")
+m.name+" "+(m.type || "")+"\n\n"+
+
+"1. АКТИВ/ТРАНЗ "+act+"/"+tr+"\n"+
+"2. ЦП: "+cp+"\n"+
+"3. КОМБО/ТРАНЗ: -/-\n"+
+"4. КРОСС ДК/ТРАНЗ "+cross+"\n"+
+"5. МП "+mp+"\n"+
+"6. А-ЧЕК: "+acheck+"\n"+
+"7. СМАРТ: "+smart+"\n"+
+"8. ДЕТИ: "+kids+"\n"+
+"9. БС: -\n"+
+"10. Селфи: -\n"+
+"11. Коробочное страхование: -\n"+
+"12. VOC на встрече:"
 
 navigator.clipboard.writeText(text)
 
