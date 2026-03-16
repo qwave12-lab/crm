@@ -523,7 +523,7 @@ box.innerHTML+=`
 function formatName(name, status) {
   if (!name) return ""
 
-  let lower = name.toLowerCase()
+ let lower = String(name).toLowerCase()
 
   if (lower.includes("orange")) {
     let clean = name.replace(/orange/gi, "").trim()
