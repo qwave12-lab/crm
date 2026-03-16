@@ -893,20 +893,28 @@ id:item.id,
 name:item.name,
 phone:item.phone,
 type:item.type,
+
 services:item.services ? item.services.split(",").map(s=>s.trim()) : [],
+
 status:(item.status || "").toLowerCase(),
 comment:item.comment || "",
-date:item.date,
+
+date:new Date(item.date).toLocaleDateString('en-CA'),
+
 phoneType:item.phoneType || "ios",
 age:item.age || "adult",
 bankOffer:item.bankOffer || "no",
 crossSale:item.crossSale || "none",
-income: Number(item.servicesIncome) || 0
-})
+
+advance:Number(item.advance) || 0,
+rest:Number(item.rest) || 0,
+servicesIncome:Number(item.servicesIncome) || 0
 
 })
 
-render()   // ← ВОТ ЭТО ГЛАВНОЕ
+})
+
+render()
 
 }
 
@@ -987,28 +995,29 @@ else if (status === "ok") success++
 
 // ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
-advance += 300
-rest += 100
-servicesIncome += Number(m.income) || 0
 
-  if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-    kkCount++
-    if (m.services && m.services.includes("ppi")) {
-      ppiCount++
-    }
-  }
+advance += Number(m.advance) || 0
+rest += Number(m.rest) || 0
+servicesIncome += Number(m.servicesIncome) || 0
 
-  if (m.type === "DC" && m.bankOffer === "yes") {
+if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+kkCount++
+if (m.services && m.services.includes("ppi")) {
+ppiCount++
+}
+}
 
-    bankOffers++
+if (m.type === "DC" && m.bankOffer === "yes") {
 
-    if (m.crossSale === "cc" || m.crossSale === "combo") {
-      crossSales++
-      crossIncome += 350
-      rest += 350
-    }
+bankOffers++
 
-  }
+if (m.crossSale === "cc" || m.crossSale === "combo") {
+crossSales++
+crossIncome += 350
+rest += 350
+}
+
+}
 
 }
 
