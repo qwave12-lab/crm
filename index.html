@@ -6,6 +6,26 @@
 <title>Pro Crm</title>
 
 <style>
+  .btn-success {
+  background:#34c759 !important;
+  color:white !important;
+  font-weight:bold !important;
+}
+.btn-reject {
+  background:#ff3b30 !important;
+  color:white !important;
+  font-weight:bold !important;
+}
+.btn-transfer {
+  background:#ffcc00 !important;
+  color:black !important;
+  font-weight:bold !important;
+}
+.btn-ndz {
+  background:#9c27b0 !important;
+  color:white !important;
+  font-weight:bold !important;
+}
 /* стили — без изменений, только формат */
 body{
   font-family:-apple-system, BlinkMacSystemFont, Arial;
@@ -213,10 +233,10 @@ font-weight:600;
 <button onclick="toggleStatusMenu()">Статус</button>
 
 <div id="statusMenu" style="display:none;margin-top:8px">
-  <button onclick="addMeeting('ok')">Успешно</button>
-  <button onclick="addMeeting('bankReject')">Отказ банка</button>
-  <button onclick="addMeeting('transfer')">Перенос</button>
-  <button onclick="addMeeting('ndz')">НДЗ</button>
+  <button onclick="addMeeting('ok')" style="background:#34c759; color:white; font-weight:bold;">✅ Успешно</button>
+  <button onclick="addMeeting('bankReject')" style="background:#ff3b30; color:white; font-weight:bold;">❌ Отказ банка</button>
+  <button onclick="addMeeting('transfer')" style="background:#ffcc00; color:black; font-weight:bold;">🔄 Перенос</button>
+  <button onclick="addMeeting('ndz')" style="background:#9c27b0; color:white; font-weight:bold;">💜 НДЗ</button>
 </div>
 
 <!-- СТАТИСТИКА -->
