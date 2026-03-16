@@ -1050,7 +1050,23 @@ if (dateInFilter && m.status === "ok") {
   } // закрываем if (m.status === "ok" && m.services)
 }) // закрываем reversed.forEach
   // ===== РАСЧЁТ ПРОЦЕНТОВ =====
-  let total = meetings.length
+  
+let total = reversed.filter(m => {
+
+  let meetingDate = m.date
+
+  if (!filterStartDate || !filterEndDate) return true
+
+  if (meetingDate && meetingDate.includes('.')) {
+    let parts = meetingDate.split('.')
+    let formatted = parts[2] + '-' + parts[1] + '-' + parts[0]
+
+    return formatted >= filterStartDate && formatted <= filterEndDate
+  }
+
+  return meetingDate >= filterStartDate && meetingDate <= filterEndDate
+
+}).length
 
   // Общие проценты
   let transferPercent = total > 0 ? Math.round(transfers / total * 100) : 0
