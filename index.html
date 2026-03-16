@@ -1338,48 +1338,110 @@ function copyReport(id) {
         return
     }
 
+    let dateStr = formatDisplayDate(m.date)
+    let type = m.type || ""
+    
+    // Очищаем имя от тегов
+    let cleanName = String(m.name || "")
+        .replace(/orange/gi, "")
+        .replace(/re/gi, "")
+        .replace(/t0/gi, "")
+        .trim()
+    
+    // Определяем теги
+    let isOrange = String(m.name || "").toLowerCase().includes("orange")
+    let isRE = String(m.name || "").toLowerCase().startsWith("re")
+    let tag = ""
+    if (isOrange) tag = " 🍊"
+    else if (isRE) tag = " RE"
+    
+    // ===== ОТКАЗ БАНКА =====
+    if (m.status === "bankreject") {
+        let text = `${dateStr}\n${cleanName} ${type}${tag}\nОТКАЗ БАНКА`
+        copyToClipboard(text)
+        return
+    }
+    
+    // ===== НДЗ =====
+    if (m.status === "ndz") {
+        let text = `${dateStr}\n${cleanName} ${type}${tag}\nНДЗ`
+        copyToClipboard(text)
+        return
+    }
+    
+    // ===== ПЕРЕНОС =====
+    if (m.status === "transfer") {
+        let text = `${dateStr}\n${cleanName} ${type}\nПЕРЕНОС\nКомментарий: ${m.comment || "-"}`
+        copyToClipboard(text)
+        return
+    }
+    
+    // ===== УСПЕШНЫЕ ВСТРЕЧИ =====
     let services = Array.isArray(m.services) ? m.services : []
-
     let has = s => services.includes(s)
-
+    
+    // Для Orange - только активация
     let act = has("activation") ? "+" : "-"
-    let tr = has("transaction") ? "+" : "-"
-    let cp = has("cp") ? "+" : "-"
-    let mp = (has("mp_ios") || has("mp_android")) ? "+" : "-"
-    let acheck = has("alphaCheck") ? "+" : "-"
-    let smart = has("alphaSmart") ? "+" : "-"
-    let ppi = has("ppi") ? "+" : "-"
-    let jku = has("jku") ? "+" : "-"
-
-    let cross = "-/-"
-    if (m.crossSale === "combo") cross = "+/+"
-    if (m.crossSale === "cc") cross = "+/+"
-
-    // Определяем возраст клиента
+    let tr = "-"  // Для Orange транзакция всегда минус
+    let cp = "-"
+    let acheck = "-"
+    let smart = "-"
+    let jku = "-"
+    
+    // Для RE - активация и транзакция работают
+    if (isRE) {
+        tr = has("transaction") ? "+" : "-"
+    }
+    
+    // Для обычных клиентов
+    if (!isOrange && !isRE) {
+        tr = has("transaction") ? "+" : "-"
+        cp = has("cp") ? "+" : "-"
+        acheck = has("alphaCheck") ? "+" : "-"
+        smart = has("alphaSmart") ? "+" : "-"
+        jku = has("jku") ? "+" : "-"
+    }
+    
+    // МП
+    let mpText = "-"
+    if (has("mp_ios")) mpText = "IOS установил"
+    else if (has("mp_android")) mpText = "Android установил"
+    else if (has("mp_ios_exists")) mpText = "IOS было"
+    else if (has("mp_android_exists")) mpText = "Android было"
+    
+    // Возраст
     let age = m.age === "teen" ? "дети" : "взрослые"
+    
+    // ===== CROSS СТАТУС =====
+    // КОМБО/ТРАНЗ: показывает Cross продажи
+    let comboStatus = "-/-"
+    if (m.crossSale === "combo") comboStatus = "+/-"
+    if (m.crossSale === "cc") comboStatus = "+/-"
+    
+    // КРОСС ДК/ТРАНЗ: всегда минусы
+    let crossDKStatus = "-/-"
+    
+    // ФОРМИРУЕМ ОТЧЁТ
+    let text = `${dateStr}\n${cleanName} ${type}${tag}\n\n` +
+        `1. АКТИВ/ТРАНЗ ${act}/${tr}\n` +
+        `2. ЦП: ${cp}\n` +
+        `3. КОМБО/ТРАНЗ: ${comboStatus}\n` +
+        `4. КРОСС ДК/ТРАНЗ ${crossDKStatus}\n` +
+        `5. МП ${mpText}\n` +
+        `6. А-ЧЕК: ${acheck}\n` +
+        `7. СМАРТ: ${smart}\n` +
+        `8. ДЕТИ: ${age}\n` +
+        `9. VOC на встрече: сообщил`
+    
+    copyToClipboard(text)
+}
 
-    // Формируем текст отчёта
-    let text =
-        m.name + " " + (m.type || "") + "\n\n" +
-        "1. АКТИВ/ТРАНЗ " + act + "/" + tr + "\n" +
-        "2. ЦП: " + cp + "\n" +
-        "3. КОМБО/ТРАНЗ: -/-\n" +
-        "4. КРОСС ДК/ТРАНЗ " + cross + "\n" +
-        "5. МП " + mp + "\n" +
-        "6. А-ЧЕК: " + acheck + "\n" +
-        "7. СМАРТ: " + smart + "\n" +
-        "8. ДЕТИ: " + age + "\n" +
-        "9. БС: -\n" +
-        "10. Селфи: -\n" +
-        "11. Коробочное страхование: -\n" +
-        "12. VOC на встрече:"
-
-    // Копируем в буфер обмена
+// Вспомогательная функция для копирования
+function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        // Показываем уведомление
-        showNotification("✅ Отчёт встречи скопирован")
+        showNotification("✅ Отчёт скопирован")
         
-        // Находим кнопку, по которой кликнули, и показываем анимацию
+        // Анимация кнопки
         let btn = event?.target?.closest?.('.actionBtn')
         if (btn) {
             let originalHTML = btn.innerHTML
