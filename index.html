@@ -197,9 +197,9 @@ font-weight:600;
 <b>Тип карты</b>
 <select id="type" onchange="updateOfferBlock()">
   <option value="DC">DC</option>
-  <option value="СС">CC</option>
-  <option value="СС1">CC1</option>
-  <option value="СС2">CC2</option>
+  <option value="CC">CC</option>
+  <option value="CC1">CC1</option>
+  <option value="CC2">CC2</option>
 </select>
 
 <b>Возраст клиента</b>
@@ -528,8 +528,8 @@ function formatName(name, status) {
     return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
   }
   
-  if (lower.includes("re")) {  // RE проверка
-    let clean = name.replace(/re/gi, "").trim()
+if (lower.startsWith("re")) {  // RE проверка
+  let clean = name.replace(/^re\s*/i, "").trim()
     return `<div class="tag-re">RE</div><b>${clean}</b>`
   }
 
@@ -747,7 +747,7 @@ let comment=document.getElementById("comment").value
 let serviceList = []
 let income = 0
 
-if(status !== "ndz" && status !== "bankReject") {
+if(status !== "ndz" && status !== "bankreject") {
   serviceList = getSelectedServices()
   income = calculateIncome(serviceList)
 }
@@ -944,7 +944,7 @@ function render() {
 
 // ===== СБОР СТАТИСТИКИ =====
 reversed.forEach((m, i) => {
-  let status = String(m.status || "").toLowerCase().trim()
+ let status = String(m.status || "").toLowerCase().trim()
   let meetingDate = m.date
 let dateInFilter = true
 
@@ -974,18 +974,17 @@ if (dateInFilter && isRE) reTotal++
 // считаем статусы
 if (dateInFilter) {
 
-  if (m.status === "transfer") transfers++
-  else if (status === "bankreject") rejects++
-  else if (status === "ndz") ndz++
-  else else if (status === "transfer") success++
+if (status === "transfer") transfers++
+else if (status === "bankreject") rejects++
+else if (status === "ndz") ndz++
+else if (status === "ok") success++
 
 }
 
  // ===== ДОХОД =====
 // Каждая успешная встреча = 400₽ (300 аванс + 100 остаток)
-if (dateInFilter && m.status === "ok") {
+if (dateInFilter && status === "ok") {
   
-  console.log("доход встреча", m.name, m.income)
   if (m.type === "СС" || m.type === "СС1" || m.type === "СС2") {
   kkCount++
   if (m.services && m.services.includes("ppi")) {
@@ -1014,7 +1013,7 @@ if (dateInFilter && m.status === "ok") {
 }
 
   // ===== СТАТИСТИКА УСЛУГ =====
-  if (dateInFilter && m.status === "ok" && m.services && m.services.length > 0) {
+if (dateInFilter && status === "ok" && m.services && m.services.length > 0) {
 
     // RE - влияют ТОЛЬКО на активацию и транзакцию
     if (isRE) {
