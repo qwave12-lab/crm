@@ -491,7 +491,7 @@ function renderServices(){
     `
   }
   // CC-специфично
-  if(type===CC" || type==="CC1" || type==="CC2"){
+  if(type==="CC" || type==="CC1" || type==="CC2"){
     box.innerHTML+=`
       <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
     `
@@ -516,8 +516,10 @@ box.innerHTML+=`
         <option value="exists">Уже было</option>
       </select>
     </div>
-  `
+    `
+  
 }
+
 function formatName(name, status) {
   if (!name) return ""
 
