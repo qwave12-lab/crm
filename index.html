@@ -1676,8 +1676,8 @@ function deleteFromSheet(id){
 fetch("https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec",{
 method:"POST",
 body:new URLSearchParams({
-action:"delete",
-id:id
+  action:"delete",
+  id:id,
   token: API_TOKEN
 })
 })
