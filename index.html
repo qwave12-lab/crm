@@ -428,8 +428,10 @@ function toggleStatusMenu(){
   menu.style.display = (menu.style.display==="none" || menu.style.display==="") ? "block" : "none"
 }
 async function sendToSheet(data){
+  data.token = API_TOKEN
 return fetch(API_URL,{
 method:"POST",
+
 body:new URLSearchParams(data)
 })
 
@@ -899,9 +901,10 @@ function selectAll(){
   checks.forEach(c=>c.checked=true)
 }
 const API_URL = "https://script.google.com/macros/s/AKfycbwtweFPNzxB7eOsIG8vyHdNSnnPLbUCbRnAHvHCjL7OOY9tZ61qTBEL1MPtnvrlH9KjCA/exec"
+const API_TOKEN = "1488"
 async function loadFromSheet(){
 
-let res = await fetch(API_URL)
+let res = await fetch(API_URL + "?token=" + API_TOKEN)
 let data = await res.json()
 
 meetings = []
@@ -1675,6 +1678,7 @@ method:"POST",
 body:new URLSearchParams({
 action:"delete",
 id:id
+  token: API_TOKEN
 })
 })
 .then(r=>r.text())
