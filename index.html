@@ -139,6 +139,7 @@ font-weight:600;
 cursor:pointer;
 transition:all .2s ease;
 }
+.card.clientreject{ border-left:5px solid #ff4fa0; }
 
 .actionBtn svg{
 width:16px;
@@ -1336,15 +1337,21 @@ ppiPercent = serviceBase.ppi > 0 ? Math.round((serviceStats.ppi || 0) / serviceB
     mp_android_exists: "МП Android уже было"
   }
 
-  let statsHTML = ""
-  for (let s in serviceStats) {
-    let title = names[s] || s
-    let perc = 0
-    if (s === "activation") perc = activationPercent
-    else if (s === "transaction") perc = transactionPercent
-    else perc = countForOther > 0 ? Math.round(serviceStats[s] / countForOther * 100) : 0
-    statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
-  }
+ let statsHTML = ""
+for (let s in serviceStats) {
+  let title = names[s] || s
+  let perc = 0
+
+  if (s === "activation") perc = activationPercent
+  else if (s === "transaction") perc = transactionPercent
+  else if (s === "cp") perc = cpPercent
+  else if (s === "jku") perc = jkuPercent
+  else if (s === "alphaSmart") perc = smartPercent
+  else if (s === "alphaCheck") perc = checkPercent
+  else if (s === "ppi") perc = ppiPercent
+
+  statsHTML += `${title}: ${serviceStats[s]} (${perc}%)<br>`
+}
 
   // Краткая статистика
   document.getElementById("shortStats").innerHTML = `
@@ -1558,6 +1565,11 @@ function copyReport(id) {
         copyToClipboard(text)
         return
     }
+    if (m.status === "clientreject") {
+  let text = `${dateStr}\n${cleanName} ${type}${tag}\nОТКАЗ КЛИЕНТА`
+  copyToClipboard(text)
+  return
+}
     
     // ===== НДЗ =====
     if (m.status === "ndz") {
@@ -1597,13 +1609,13 @@ let jku = markService("jku", "jku_exists")
     }
     
     // Для обычных клиентов
-    if (!isOrange && !isRE) {
-        tr = has("transaction") ? "+" : "-"
-        cp = has("cp") ? "+" : "-"
-        acheck = has("alphaCheck") ? "+" : "-"
-        smart = has("alphaSmart") ? "+" : "-"
-        jku = has("jku") ? "+" : "-"
-    }
+  if (!isOrange && !isRE) {
+  tr = has("transaction") ? "+" : "-"
+  cp = markService("cp", "cp_exists")
+  acheck = markService("alphaCheck", "alphaCheck_exists")
+  smart = markService("alphaSmart", "alphaSmart_exists")
+  jku = markService("jku", "jku_exists")
+}
     
     // МП
     let mpText = "-"
