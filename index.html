@@ -6,6 +6,30 @@
 <title>Pro Crm</title>
 
 <style>
+  .prevToggle{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:#666;
+  user-select:none;
+}
+
+.prevToggle input{
+  width:16px !important;
+  height:16px !important;
+  margin:0 !important;
+}
+
+.serviceItem .mainCheck{
+  width:auto !important;
+  margin:0 !important;
+}
+
+.serviceItem.disabledService{
+  opacity:.55;
+}
   .tag-mobile{
   background:#dbeafe;
   color:#1d4ed8;
@@ -608,44 +632,30 @@ function renderServices(){
 
   box.innerHTML = ""
 
-  // Базовые услуги
-  box.innerHTML += `
-    <div class="serviceItem">
-      <input type="checkbox" value="activation">
-      <span>Активация</span>
-    </div>
-    <div class="serviceItem">
-      <input type="checkbox" value="transaction">
-      <span>Транзакция</span>
-    </div>
-  `
+  // Базовые
+  box.innerHTML += serviceRow("activation", "Активация")
+  box.innerHTML += serviceRow("transaction", "Транзакция")
 
   // DC
   if(type === "DC"){
     if(age === "adult"){
-      box.innerHTML += `
-        <div class="serviceItem"><input type="checkbox" value="alphaSmart"><span>АльфаСмарт</span></div>
-        <div class="serviceItem"><input type="checkbox" value="alphaCheck"><span>АльфаЧек</span></div>
-        <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
-        <div class="serviceItem"><input type="checkbox" value="jku"><span>ЖКУ</span></div>
-      `
+      box.innerHTML += serviceRow("alphaSmart", "АльфаСмарт", true)
+      box.innerHTML += serviceRow("alphaCheck", "АльфаЧек", true)
+      box.innerHTML += serviceRow("cp", "ЦП", true)
+      box.innerHTML += serviceRow("jku", "ЖКУ", true)
     } else {
       // DC 14-17
-      box.innerHTML += `
-        <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
-      `
+      box.innerHTML += serviceRow("cp", "ЦП", true)
     }
   }
 
   // CC / CC1 / CC2
   if(type === "CC" || type === "CC1" || type === "CC2"){
-    box.innerHTML += `
-      <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
-      <div class="serviceItem"><input type="checkbox" value="alphaSmart"><span>АльфаСмарт</span></div>
-      <div class="serviceItem"><input type="checkbox" value="alphaCheck"><span>АльфаЧек</span></div>
-      <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
-      <div class="serviceItem"><input type="checkbox" value="jku"><span>ЖКУ</span></div>
-    `
+    box.innerHTML += serviceRow("ppi", "PPI")
+    box.innerHTML += serviceRow("alphaSmart", "АльфаСмарт", true)
+    box.innerHTML += serviceRow("alphaCheck", "АльфаЧек", true)
+    box.innerHTML += serviceRow("cp", "ЦП", true)
+    box.innerHTML += serviceRow("jku", "ЖКУ", true)
   }
 
   box.innerHTML += `
@@ -656,7 +666,9 @@ function renderServices(){
         <option value="android">Android</option>
       </select>
     </div>
+  `
 
+  box.innerHTML += `
     <div class="serviceItem">
       <span>МП</span>
       <select id="mpStatus" style="margin-left:8px;">
@@ -766,26 +778,34 @@ function updateCrossBlock(){
 
 /* ===== Сбор отмеченных услуг (включая MP-статус) ===== */
 function getSelectedServices(){
-  let arr=[]
-  // собираем отмеченные чекбоксы
-  let checkboxes=document.querySelectorAll("#servicesBox input:checked")
-  checkboxes.forEach(c => arr.push(c.value))
+  let arr = []
 
-  // MP статус (select)
+  // основные чекбоксы
+  document.querySelectorAll("#servicesBox input.mainCheck:checked").forEach(c => {
+    arr.push(c.value)
+  })
+
+  // тоглы "уже ранее подключен"
+  ;["alphaSmart","alphaCheck","cp","jku"].forEach(s => {
+    let prev = document.getElementById("prev_" + s)
+    if(prev && prev.checked){
+      arr.push(s + "_exists")
+    }
+  })
+
+  // МП
   let mpStatus = document.getElementById("mpStatus")?.value
   let phoneType = document.getElementById("phoneType")?.value
-  if(mpStatus==="install"){
-    // если установил — добавляем платформо-специфичный маркер
-    if(phoneType==="ios") arr.push("mp_ios")
+
+  if(mpStatus === "install"){
+    if(phoneType === "ios") arr.push("mp_ios")
     else arr.push("mp_android")
-  }else if(mpStatus==="exists"){
-if(phoneType==="ios"){
-arr.push("mp_ios_exists")
-}else{
-arr.push("mp_android_exists")
-}
-}
-return arr
+  }else if(mpStatus === "exists"){
+    if(phoneType === "ios") arr.push("mp_ios_exists")
+    else arr.push("mp_android_exists")
+  }
+
+  return arr
 }
 
 /* ===== Подсчёт дохода по услугам (mp_exists не платит) ===== */
@@ -1027,6 +1047,37 @@ servicesIncome:Number(item.servicesIncome) || 0
 render()
 
 }
+function serviceRow(value, title, hasPrev = false){
+  return `
+    <div class="serviceItem" id="row_${value}">
+      <input class="mainCheck" type="checkbox" value="${value}" id="svc_${value}">
+      <span>${title}</span>
+      ${hasPrev ? `
+        <label class="prevToggle">
+          <input type="checkbox" id="prev_${value}" onchange="syncPrevService('${value}')">
+          уже ранее подключен
+        </label>
+      ` : ""}
+    </div>
+  `
+}
+
+function syncPrevService(value){
+  let main = document.getElementById("svc_" + value)
+  let prev = document.getElementById("prev_" + value)
+  let row = document.getElementById("row_" + value)
+
+  if(!main || !prev) return
+
+  if(prev.checked){
+    main.checked = false
+    main.disabled = true
+    row?.classList.add("disabledService")
+  }else{
+    main.disabled = false
+    row?.classList.remove("disabledService")
+  }
+}
 
 /* ==== ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕНДЕРА ==== */
 
@@ -1055,7 +1106,22 @@ function render() {
   crossSales = 0
   
   let serviceStats = {}
-  
+  let serviceBase = {
+  activation: 0,
+  transaction: 0,
+  alphaSmart: 0,
+  alphaCheck: 0,
+  cp: 0,
+  jku: 0,
+  ppi: 0
+}
+
+let serviceExists = {
+  alphaSmart: 0,
+  alphaCheck: 0,
+  cp: 0,
+  jku: 0
+}
   // СЧЁТЧИКИ ДЛЯ БАЗЫ ПРОЦЕНТОВ
   let countForActivation = 0
   let countForTransaction = 0
@@ -1135,50 +1201,62 @@ rest += 350
   // ===== СТАТИСТИКА УСЛУГ =====
 if (dateInFilter && status === "ok" && !isMobile && m.services && m.services.length > 0) {
 
-  // ORANGE — только активация
+  let services = Array.isArray(m.services) ? m.services : []
+  let has = s => services.includes(s)
+
+  let eligible = []
+
+  // ORANGE
   if (isOrange) {
-    m.services.forEach(s => {
-      if (s === "activation") {
-        serviceStats.activation = (serviceStats.activation || 0) + 1
-        countForActivation++
-      }
-    })
+    eligible = ["activation"]
   }
 
-  // RE — только активация и транзакция
+  // RE
   else if (isRE) {
-    m.services.forEach(s => {
-      if (s === "activation") {
-        serviceStats.activation = (serviceStats.activation || 0) + 1
-        countForActivation++
-      }
-      if (s === "transaction") {
-        serviceStats.transaction = (serviceStats.transaction || 0) + 1
-        countForTransaction++
-      }
-    })
+    eligible = ["activation", "transaction"]
   }
 
-  // Обычные клиенты
-  else {
-    m.services.forEach(s => {
-      serviceStats[s] = (serviceStats[s] || 0) + 1
+  // DC 14-17
+  else if (m.type === "DC" && m.age === "teen") {
+    eligible = ["activation", "transaction", "cp"]
+  }
 
-      if (s === "activation") countForActivation++
-      else if (s === "transaction") countForTransaction++
-      else countForOther++
-    })
+  // DC взрослый
+  else if (m.type === "DC") {
+    eligible = ["activation", "transaction", "alphaSmart", "alphaCheck", "cp", "jku"]
+  }
 
-    if (m.phoneType === "ios") {
-      iosTotal++
-      if (m.services.includes("mp_ios")) iosInstalled++
-      if (m.services.includes("mp_ios_exists")) iosExists++
+  // CC / CC1 / CC2
+  else if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+    eligible = ["activation", "transaction", "ppi", "alphaSmart", "alphaCheck", "cp", "jku"]
+  }
+
+  eligible.forEach(s => {
+
+    // если ранее подключен — исключаем из базы
+    if (["alphaSmart","alphaCheck","cp","jku"].includes(s) && has(s + "_exists")) {
+      serviceExists[s] = (serviceExists[s] || 0) + 1
+      return
     }
 
+    serviceBase[s] = (serviceBase[s] || 0) + 1
+
+    if (has(s)) {
+      serviceStats[s] = (serviceStats[s] || 0) + 1
+    }
+  })
+
+  // статистика МП
+  if (!isOrange && !isRE) {
+    if (m.phoneType === "ios") {
+      iosTotal++
+      if (has("mp_ios")) iosInstalled++
+      if (has("mp_ios_exists")) iosExists++
+    }
     if (m.phoneType === "android") {
       androidTotal++
-      if (m.services.includes("mp_android")) androidInstalled++
-      if (m.services.includes("mp_android_exists")) androidExists++
+      if (has("mp_android")) androidInstalled++
+      if (has("mp_android_exists")) androidExists++
     }
   }
 }// закрываем if (m.status === "ok" && m.services)
@@ -1213,12 +1291,13 @@ let total = reversed.filter(m => {
   ppiPercent = kkCount > 0 ? Math.round(ppiCount / kkCount * 100) : 0
 
   // Проценты услуг
-  let activationPercent = countForActivation > 0 ? Math.round((serviceStats.activation || 0) / countForActivation * 100) : 0
-  transactionPercent = countForTransaction > 0 ? Math.round((serviceStats.transaction || 0) / countForTransaction * 100) : 0
-  let cpPercent = countForOther > 0 ? Math.round((serviceStats.cp || 0) / countForOther * 100) : 0
-  let jkuPercent = countForOther > 0 ? Math.round((serviceStats.jku || 0) / countForOther * 100) : 0
-  let smartPercent = countForOther > 0 ? Math.round((serviceStats.alphaSmart || 0) / countForOther * 100) : 0
-  let checkPercent = countForOther > 0 ? Math.round((serviceStats.alphaCheck || 0) / countForOther * 100) : 0
+let activationPercent = serviceBase.activation > 0 ? Math.round((serviceStats.activation || 0) / serviceBase.activation * 100) : 0
+let transactionPercent = serviceBase.transaction > 0 ? Math.round((serviceStats.transaction || 0) / serviceBase.transaction * 100) : 0
+let cpPercent = serviceBase.cp > 0 ? Math.round((serviceStats.cp || 0) / serviceBase.cp * 100) : 0
+let jkuPercent = serviceBase.jku > 0 ? Math.round((serviceStats.jku || 0) / serviceBase.jku * 100) : 0
+let smartPercent = serviceBase.alphaSmart > 0 ? Math.round((serviceStats.alphaSmart || 0) / serviceBase.alphaSmart * 100) : 0
+let checkPercent = serviceBase.alphaCheck > 0 ? Math.round((serviceStats.alphaCheck || 0) / serviceBase.alphaCheck * 100) : 0
+ppiPercent = serviceBase.ppi > 0 ? Math.round((serviceStats.ppi || 0) / serviceBase.ppi * 100) : 0
 
   // МП проценты
   iosPercentShort = iosTotal > 0 ? Math.round((iosInstalled + iosExists) / iosTotal * 100) : 0
@@ -1334,6 +1413,11 @@ let total = reversed.filter(m => {
     не установил: ${androidNot}<br>
     уже было: ${androidExists}<br>
     конверсия: ${androidPercentShort}%<br>
+    <br><b>Ранее подключено</b><br>
+АльфаСмарт: ${serviceExists.alphaSmart}<br>
+АльфаЧек: ${serviceExists.alphaCheck}<br>
+ЦП: ${serviceExists.cp}<br>
+ЖКУ: ${serviceExists.jku}<br>
   `
 
   // ===== РЕНДЕРИМ КАРТОЧКИ =====
@@ -1346,6 +1430,10 @@ let total = reversed.filter(m => {
       if (s === "mp_android") return "МП Android"
       if (s === "mp_ios_exists") return "МП IOS уже было"
       if (s === "mp_android_exists") return "МП Android уже было"
+      if (s === "alphaSmart_exists") return "АльфаСмарт (было)"
+if (s === "alphaCheck_exists") return "АльфаЧек (было)"
+if (s === "cp_exists") return "ЦП (было)"
+if (s === "jku_exists") return "ЖКУ (было)"
       const names = {
         activation: "Активация",
         transaction: "Транзакция",
@@ -1490,12 +1578,18 @@ function copyReport(id) {
     let has = s => services.includes(s)
     
     // Для Orange - только активация
-    let act = has("activation") ? "+" : "-"
-    let tr = "-"  // Для Orange транзакция всегда минус
-    let cp = "-"
-    let acheck = "-"
-    let smart = "-"
-    let jku = "-"
+   function markService(main, exists){
+  if(has(exists)) return "было"
+  if(has(main)) return "+"
+  return "-"
+}
+
+let act = has("activation") ? "+" : "-"
+let tr = "-"
+let cp = markService("cp", "cp_exists")
+let acheck = markService("alphaCheck", "alphaCheck_exists")
+let smart = markService("alphaSmart", "alphaSmart_exists")
+let jku = markService("jku", "jku_exists")
     
     // Для RE - активация и транзакция работают
     if (isRE) {
@@ -1589,10 +1683,18 @@ function copySelectedReport() {
             let services = Array.isArray(m.services) ? m.services : []
             let has = s => services.includes(s)
             
-            let act = has("activation") ? "+" : "-"
-            let tr = has("transaction") ? "+" : "-"
-            let cp = has("cp") ? "+" : "-"
-            let mp = (has("mp_ios") || has("mp_android")) ? "+" : "-"
+          function markService(main, exists){
+  if(has(exists)) return "было"
+  if(has(main)) return "+"
+  return "-"
+}
+
+let act = has("activation") ? "+" : "-"
+let tr = has("transaction") ? "+" : "-"
+let cp = markService("cp", "cp_exists")
+let mp =
+  has("mp_ios_exists") || has("mp_android_exists") ? "было" :
+  (has("mp_ios") || has("mp_android")) ? "+" : "-"
             let age = m.age === "teen" ? "дети" : "взрослые"
             
             selectedReports.push(
