@@ -6,16 +6,92 @@
 <title>Pro Crm</title>
 
 <style>
-  .btn-success {
-  background:#34c759 !important;
-  color:white !important;
-  font-weight:bold !important;
+  .tag-mobile{
+  background:#dbeafe;
+  color:#1d4ed8;
+  padding:5px 10px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:1px;
+  display:inline-block;
+  text-transform:uppercase;
+  margin-bottom:4px;
 }
-.btn-reject {
-  background:#ff3b30 !important;
-  color:white !important;
-  font-weight:bold !important;
+  /* ===== новые кнопки статусов ===== */
+#statusMenu{
+  display:none;
+  margin-top:8px;
 }
+
+.statusRow{
+  display:flex;
+  flex-wrap:nowrap;      /* одна строка */
+  gap:8px;
+  overflow-x:auto;       /* если не влезают — можно скроллить вбок */
+  padding:4px 0;
+  scrollbar-width:none;
+}
+
+.statusRow::-webkit-scrollbar{
+  display:none;
+}
+
+.statusBtn{
+  width:auto !important;       /* убираем растяжение */
+  min-width:max-content;
+  flex:0 0 auto;
+  margin-top:0;
+  padding:10px 14px;
+  border:none;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:700;
+  line-height:1;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 6px 14px rgba(0,0,0,.12);
+  transition:.18s ease;
+}
+
+.statusBtn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(0,0,0,.16);
+}
+
+.statusBtn:active{
+  transform:scale(.98);
+}
+
+.statusBtn.success{
+  background:linear-gradient(90deg,#38c95a 0%, #1f8f3d 100%);
+}
+
+.statusBtn.bank{
+  background:linear-gradient(90deg,#ff5a5a 0%, #d91f1f 100%);
+}
+
+.statusBtn.client{
+  background:linear-gradient(90deg,#ff4fa0 0%, #f50057 100%);
+}
+
+.statusBtn.transfer{
+  background:linear-gradient(90deg,#59a8ff 0%, #1e6df2 100%);
+}
+
+.statusBtn.ndz{
+  background:linear-gradient(90deg,#b14cff 0%, #8e24aa 100%);
+}
+
+
+
+
+
+
 .cardActions{
 display:flex;
 gap:8px;
@@ -63,16 +139,7 @@ box-shadow:0 4px 10px rgba(0,0,0,0.15);
 .actionBtn:active{
 transform:scale(.95);
 }
-.btn-transfer {
-  background:#ffcc00 !important;
-  color:black !important;
-  font-weight:bold !important;
-}
-.btn-ndz {
-  background:#9c27b0 !important;
-  color:white !important;
-  font-weight:bold !important;
-}
+
 /* стили — без изменений, только формат */
 body{
   font-family:-apple-system, BlinkMacSystemFont, Arial;
@@ -307,11 +374,14 @@ font-weight:600;
 <input type="file" id="screenshot" accept="image/*">
 <button onclick="toggleStatusMenu()">Статус</button>
 
-<div id="statusMenu" style="display:none;margin-top:8px">
-  <button onclick="addMeeting('ok')" style="background:#34c759; color:white; font-weight:bold;">✅ Успешно</button>
-  <button onclick="addMeeting('bankreject')" style="background:#ff3b30; color:white; font-weight:bold;">❌ Отказ банка</button>
-  <button onclick="addMeeting('transfer')" style="background:#ffcc00; color:black; font-weight:bold;">🔄 Перенос</button>
-  <button onclick="addMeeting('ndz')" style="background:#9c27b0; color:white; font-weight:bold;">💜 НДЗ</button>
+<div id="statusMenu">
+  <div class="statusRow">
+    <button class="statusBtn success" onclick="addMeeting('ok')">✅ Успешно</button>
+    <button class="statusBtn bank" onclick="addMeeting('bankreject')">❌ Отказ банка</button>
+    <button class="statusBtn client" onclick="addMeeting('clientreject')">🚫 Отказ клиента</button>
+    <button class="statusBtn transfer" onclick="addMeeting('transfer')">🔄 Перенос</button>
+    <button class="statusBtn ndz" onclick="addMeeting('ndz')">💜 НДЗ</button>
+  </div>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -532,60 +602,61 @@ reader.readAsDataURL(file)
 
 /* ---------- Рендер блока услуг (динамически) ---------- */
 function renderServices(){
-  let box=document.getElementById("servicesBox")
-  let type=document.getElementById("type").value
-  let age=document.getElementById("age")?.value || "adult"
+  let box = document.getElementById("servicesBox")
+  let type = document.getElementById("type").value
+  let age = document.getElementById("age")?.value || "adult"
 
-  box.innerHTML=""
+  box.innerHTML = ""
 
-  // Активация
-  box.innerHTML+=`
+  // Базовые услуги
+  box.innerHTML += `
     <div class="serviceItem">
       <input type="checkbox" value="activation">
       <span>Активация</span>
     </div>
-  `
-  // Транзакция
-  box.innerHTML+=`
     <div class="serviceItem">
       <input type="checkbox" value="transaction">
       <span>Транзакция</span>
     </div>
   `
-  // DC-специфичные услуги
-  if(type==="DC"){
-    if(age==="adult"){
-      box.innerHTML+=`
-        <div class="serviceItem">
-          <input type="checkbox" value="alphaSmart">
-          <span>АльфаСмарт</span>
-        </div>
+
+  // DC
+  if(type === "DC"){
+    if(age === "adult"){
+      box.innerHTML += `
+        <div class="serviceItem"><input type="checkbox" value="alphaSmart"><span>АльфаСмарт</span></div>
+        <div class="serviceItem"><input type="checkbox" value="alphaCheck"><span>АльфаЧек</span></div>
+        <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
+        <div class="serviceItem"><input type="checkbox" value="jku"><span>ЖКУ</span></div>
+      `
+    } else {
+      // DC 14-17
+      box.innerHTML += `
+        <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
       `
     }
-    box.innerHTML+=`
+  }
+
+  // CC / CC1 / CC2
+  if(type === "CC" || type === "CC1" || type === "CC2"){
+    box.innerHTML += `
+      <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
+      <div class="serviceItem"><input type="checkbox" value="alphaSmart"><span>АльфаСмарт</span></div>
       <div class="serviceItem"><input type="checkbox" value="alphaCheck"><span>АльфаЧек</span></div>
       <div class="serviceItem"><input type="checkbox" value="cp"><span>ЦП</span></div>
       <div class="serviceItem"><input type="checkbox" value="jku"><span>ЖКУ</span></div>
     `
   }
-  // CC-специфично
-  if(type==="CC" || type==="CC1" || type==="CC2"){
-    box.innerHTML+=`
-      <div class="serviceItem"><input type="checkbox" value="ppi"><span>PPI</span></div>
-    `
-  }
-  
-box.innerHTML+=`
+
+  box.innerHTML += `
     <div class="serviceItem">
       <span>Платформа телефона</span>
       <select id="phoneType">
-      <option value="ios">IOS</option>
-    <option value="android">Android</option>
-    </select>
-  </div>
-`
-  // МП: статус (не чекбокс) — "Не установил / Установил / Уже было"
-  box.innerHTML+=`
+        <option value="ios">IOS</option>
+        <option value="android">Android</option>
+      </select>
+    </div>
+
     <div class="serviceItem">
       <span>МП</span>
       <select id="mpStatus" style="margin-left:8px;">
@@ -594,22 +665,26 @@ box.innerHTML+=`
         <option value="exists">Уже было</option>
       </select>
     </div>
-    `
-  
+  `
 }
 
 function formatName(name, status) {
   if (!name) return ""
 
- let lower = String(name).toLowerCase()
+  let lower = String(name).toLowerCase()
+
+  if (lower.includes("mobile")) {
+    let clean = name.replace(/mobile/gi, "").trim()
+    return `<div class="tag-mobile">MOBILE</div><b>${clean}</b>`
+  }
 
   if (lower.includes("orange")) {
     let clean = name.replace(/orange/gi, "").trim()
     return `<div class="tag-orange">ORANGE</div><b>${clean}</b>`
   }
-  
-if (lower.startsWith("re")) {  // RE проверка
-  let clean = name.replace(/^re\s*/i, "").trim()
+
+  if (lower.startsWith("re")) {
+    let clean = name.replace(/^re\s*/i, "").trim()
     return `<div class="tag-re">RE</div><b>${clean}</b>`
   }
 
@@ -624,6 +699,10 @@ if (lower.startsWith("re")) {  // RE проверка
 
   if (status === "bankreject") {
     return `<div class="tag-reject">ОТКАЗ БАНКА</div><b>${name}</b>`
+  }
+
+  if (status === "clientreject") {
+    return `<div class="tag-reject">ОТКАЗ КЛИЕНТА</div><b>${name}</b>`
   }
 
   return `<b>${name}</b>`
@@ -757,7 +836,15 @@ let comment=document.getElementById("comment").value
 let serviceList = []
 let income = 0
 
-if(status !== "ndz" && status !== "bankreject") {
+let isMobile = String(name).toLowerCase().includes("mobile")
+
+if(
+  status !== "ndz" &&
+  status !== "bankreject" &&
+  status !== "clientreject" &&
+  status !== "transfer" &&
+  !isMobile
+) {
   serviceList = getSelectedServices()
   income = calculateIncome(serviceList)
 }
@@ -951,7 +1038,7 @@ function render() {
   let search = document.getElementById("searchInput")?.value?.toLowerCase() || ""
 
   // СЧЁТЧИКИ
-  let transfers = 0, success = 0, rejects = 0, ndz = 0
+  let transfers = 0, success = 0, rejects = 0, ndz = 0, mobileTotal = 0
   let kkCount = 0, ppiCount = 0
   let iosTotal = 0, androidTotal = 0
   let iosInstalled = 0, androidInstalled = 0
@@ -1002,18 +1089,19 @@ if (filterStartDate && filterEndDate) {
   }
 
 }
+let isMobile = m.name && String(m.name).toLowerCase().includes("mobile")
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 let isRE = m.name && String(m.name).toLowerCase().startsWith("re")
+
+if (dateInFilter && isMobile) mobileTotal++
 if (dateInFilter && isOrange) orangeTotal++
 if (dateInFilter && isRE) reTotal++
 // считаем статусы
-if (dateInFilter) {
-
-if (status === "transfer") transfers++
-else if (status === "bankreject") rejects++
-else if (status === "ndz") ndz++
-else if (status === "ok") success++
-
+if (dateInFilter && !isMobile) {
+  if (status === "transfer") transfers++
+  else if (status === "bankreject" || status === "clientreject") rejects++
+  else if (status === "ndz") ndz++
+  else if (status === "ok") success++
 }
 
 // ===== ДОХОД =====
@@ -1045,52 +1133,62 @@ rest += 350
 }
 
   // ===== СТАТИСТИКА УСЛУГ =====
-if (dateInFilter && status === "ok" && m.services && m.services.length > 0) {
+if (dateInFilter && status === "ok" && !isMobile && m.services && m.services.length > 0) {
 
-    // RE - влияют ТОЛЬКО на активацию и транзакцию
-    if (isRE) {
-      m.services.forEach(s => {
-        if (s === "activation") {
-          serviceStats.activation = (serviceStats.activation || 0) + 1
-          countForActivation++
-        }
-        if (s === "transaction") {
-          serviceStats.transaction = (serviceStats.transaction || 0) + 1
-          countForTransaction++
-        }
-      })
-    }
-    // Обычные клиенты (не Orange, не RE)
-    else if (!isOrange) {
-      m.services.forEach(s => {
-        serviceStats[s] = (serviceStats[s] || 0) + 1
-        
-  if (s === "activation") countForActivation++
-        else if (s === "transaction") countForTransaction++
-        else countForOther++
-      })
-
-      // МП статистика ТОЛЬКО для обычных клиентов
-      if (!isOrange && !isRE) {
-        if (m.phoneType === "ios") {
-          iosTotal++
-          if (m.services.includes("mp_ios")) iosInstalled++
-          if (m.services.includes("mp_ios_exists")) iosExists++
-        }
-        if (m.phoneType === "android") {
-          androidTotal++
-          if (m.services.includes("mp_android")) androidInstalled++
-          if (m.services.includes("mp_android_exists")) androidExists++
-        }
+  // ORANGE — только активация
+  if (isOrange) {
+    m.services.forEach(s => {
+      if (s === "activation") {
+        serviceStats.activation = (serviceStats.activation || 0) + 1
+        countForActivation++
       }
-      // Orange игнорируются
-   } // закрываем else if (!isOrange)
-  } // закрываем if (m.status === "ok" && m.services)
+    })
+  }
+
+  // RE — только активация и транзакция
+  else if (isRE) {
+    m.services.forEach(s => {
+      if (s === "activation") {
+        serviceStats.activation = (serviceStats.activation || 0) + 1
+        countForActivation++
+      }
+      if (s === "transaction") {
+        serviceStats.transaction = (serviceStats.transaction || 0) + 1
+        countForTransaction++
+      }
+    })
+  }
+
+  // Обычные клиенты
+  else {
+    m.services.forEach(s => {
+      serviceStats[s] = (serviceStats[s] || 0) + 1
+
+      if (s === "activation") countForActivation++
+      else if (s === "transaction") countForTransaction++
+      else countForOther++
+    })
+
+    if (m.phoneType === "ios") {
+      iosTotal++
+      if (m.services.includes("mp_ios")) iosInstalled++
+      if (m.services.includes("mp_ios_exists")) iosExists++
+    }
+
+    if (m.phoneType === "android") {
+      androidTotal++
+      if (m.services.includes("mp_android")) androidInstalled++
+      if (m.services.includes("mp_android_exists")) androidExists++
+    }
+  }
+}// закрываем if (m.status === "ok" && m.services)
 }) // закрываем reversed.forEach
   // ===== РАСЧЁТ ПРОЦЕНТОВ =====
   
 let total = reversed.filter(m => {
 
+  let isMobile = m.name && String(m.name).toLowerCase().includes("mobile")
+  if (isMobile) return false
   let meetingDate = m.date
 
   if (!filterStartDate || !filterEndDate) return true
@@ -1171,9 +1269,11 @@ let total = reversed.filter(m => {
 
   // Краткая статистика
   document.getElementById("shortStats").innerHTML = `
+  <div class="statsRow"><span>📱 Mobile</span><span>${mobileTotal}</span></div>
     <div class="statsRow"><span>🍊 Orange </span><span>${orangeTotal}</span></div>
     <div class="statsRow"><span>🟢 RE встреч</span><span>${reTotal}</span></div>
     <br>
+    
     <div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
     <div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
     <div class="statsRow"><span>% НДЗ</span><span>${ndzPercent}% (${ndz})</span></div>
@@ -1280,7 +1380,13 @@ let total = reversed.filter(m => {
           <div class="card-body" style="display:${cardsCollapsed ? 'none' : 'block'}">
             Телефон: ${m.phone || ""}<br>
             Услуги: ${serviceNames || '-'}<br>
-            Статус: ${m.status === "bankreject" ? "отказ банка" : m.status === "ndz" ? "НДЗ" : "успешно"}<br>
+           Статус: ${
+  m.status === "bankreject" ? "отказ банка" :
+  m.status === "clientreject" ? "отказ клиента" :
+  m.status === "transfer" ? "перенос" :
+  m.status === "ndz" ? "НДЗ" :
+  "успешно"
+}<br>
             ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
             ${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
             ${m.type === "DC" ? `
