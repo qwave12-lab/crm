@@ -1687,12 +1687,21 @@ let jku = markService("jku", "jku_exists")
     
     // ===== CROSS СТАТУС =====
     // КОМБО/ТРАНЗ: показывает Cross продажи
-    let comboStatus = "-/-"
-    if (m.crossSale === "combo") comboStatus = "+/-"
-    if (m.crossSale === "cc") comboStatus = "+/-"
-    
-    // КРОСС ДК/ТРАНЗ: всегда минусы
-    let crossDKStatus = "-/-"
+   let crossBlock = ""
+
+if (m.bankOffer === "no") {
+  crossBlock = `3. Cross комбо/кк: не было предложений\n`
+} else {
+  let comboStatus = "-/-"
+  if (m.crossSale === "combo") comboStatus = "+/-"
+  if (m.crossSale === "cc") comboStatus = "+/-"
+
+  let crossDKStatus = "-/-"
+
+  crossBlock =
+    `3. КОМБО/ТРАНЗ: ${comboStatus}\n` +
+    `4. КРОСС ДК/ТРАНЗ ${crossDKStatus}\n`
+}
     
     // ФОРМИРУЕМ ОТЧЁТ
     let text = `${dateStr}\n${cleanName} ${type}${tag}\n\n` +
