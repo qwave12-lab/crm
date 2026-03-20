@@ -1486,8 +1486,13 @@ for (let s in serviceStats) {
   `
 
   // ===== РЕНДЕРИМ КАРТОЧКИ =====
-  reversed.forEach((m, i) => {
-    let text = (String(m.name) + " " + (m.date || "")).toLowerCase()
+reversed.forEach((m, i) => {
+    let statusLabel = m.status === "bankreject" ? "отказ банка" :
+      m.status === "clientreject" ? "отказ клиента" :
+      m.status === "transfer" ? "перенос" :
+      m.status === "ndz" ? "ндз" : ""
+
+    let text = (String(m.name) + " " + (m.date || "") + " " + statusLabel).toLowerCase()
     if (search && !text.includes(search)) return
 
     let serviceNames = (m.services || []).map(s => {
