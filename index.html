@@ -484,16 +484,7 @@ font-weight:600;
     <div style="margin-top:10px; font-size:14px; color:#666;" id="periodInfo"></div>
   </div>
 
-  <div id="shortStats"></div>
-
-  <button onclick="toggleFullStats()" id="statsBtn">Подробнее ▼</button>
-  <button onclick="togglePlan()" id="planBtn">План на март 📊</button>
-  <button onclick="copyDayReport()">Отчёт дня 📋</button>
-
-  <div id="planBlock" style="display:none;margin-top:10px"></div>
-  <div id="fullStats" style="display:none">
-    <div id="fullStatsContent"></div>
-  </div>
+  
 
   <br>
   <b>PPI статистика</b><br>
@@ -513,6 +504,7 @@ font-weight:600;
   Cross: <span id="crossIncome">0</span> ₽<br>
   <b>Итого: <span id="income">0</span> ₽</b>
 </div>
+
 
 <!-- Поиск и список -->
 <div class="panel">
@@ -1231,29 +1223,32 @@ if (dateInFilter && !isMobile) {
 // ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
 
-advance += Number(m.advance) || 0
-rest += Number(m.rest) || 0
-servicesIncome += Number(m.servicesIncome) || 0
+  if (isMobile) {
+    advance += Number(m.advance) || 0
+  } else {
 
-if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-kkCount++
-if (m.services && m.services.includes("ppi")) {
-ppiCount++
-}
-}
+    advance += Number(m.advance) || 0
+    rest += Number(m.rest) || 0
+    servicesIncome += Number(m.servicesIncome) || 0
 
-if (m.type === "DC" && m.bankOffer === "yes") {
+    if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+      kkCount++
+      if (m.services && m.services.includes("ppi")) {
+        ppiCount++
+      }
+    }
 
-bankOffers++
+    if (m.type === "DC" && m.bankOffer === "yes") {
+      bankOffers++
 
-if (m.crossSale === "cc" || m.crossSale === "combo") {
-crossSales++
-crossIncome += 350
-rest += 350
-}
+      if (m.crossSale === "cc" || m.crossSale === "combo") {
+        crossSales++
+        crossIncome += 350
+        rest += 350
+      }
+    }
 
-}
-
+  }
 }
 
   // ===== СТАТИСТИКА УСЛУГ =====
