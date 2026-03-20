@@ -1704,16 +1704,41 @@ if (m.bankOffer === "no") {
 }
     
     // ФОРМИРУЕМ ОТЧЁТ
-    let text = `${dateStr}\n${cleanName} ${type}${tag}\n\n` +
-        `1. АКТИВ/ТРАНЗ ${act}/${tr}\n` +
-        `2. ЦП: ${cp}\n` +
-        `3. КОМБО/ТРАНЗ: ${comboStatus}\n` +
-        `4. КРОСС ДК/ТРАНЗ ${crossDKStatus}\n` +
-        `5. МП ${mpText}\n` +
-        `6. А-ЧЕК: ${acheck}\n` +
-        `7. СМАРТ: ${smart}\n` +
-        `8. ДЕТИ: ${age}\n` +
-        `9. VOC на встрече: сообщил`
+ let crossBlock = ""
+let mpNum = 5
+let acheckNum = 6
+let smartNum = 7
+let ageNum = 8
+let vocNum = 9
+
+if (m.bankOffer === "no") {
+  crossBlock = `3. Cross комбо/кк: не было предложений\n`
+  mpNum = 4
+  acheckNum = 5
+  smartNum = 6
+  ageNum = 7
+  vocNum = 8
+} else {
+  let comboStatus = "-/-"
+  if (m.crossSale === "combo") comboStatus = "+/-"
+  if (m.crossSale === "cc") comboStatus = "+/-"
+
+  let crossDKStatus = "-/-"
+
+  crossBlock =
+    `3. КОМБО/ТРАНЗ: ${comboStatus}\n` +
+    `4. КРОСС ДК/ТРАНЗ ${crossDKStatus}\n`
+}
+
+let text = `${dateStr}\n${cleanName} ${type}${tag}\n\n` +
+    `1. АКТИВ/ТРАНЗ ${act}/${tr}\n` +
+    `2. ЦП: ${cp}\n` +
+    crossBlock +
+    `${mpNum}. МП ${mpText}\n` +
+    `${acheckNum}. А-ЧЕК: ${acheck}\n` +
+    `${smartNum}. СМАРТ: ${smart}\n` +
+    `${ageNum}. ДЕТИ: ${age}\n` +
+    `${vocNum}. VOC на встрече: сообщил`
     
     copyToClipboard(text)
 }
