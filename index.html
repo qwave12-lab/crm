@@ -452,11 +452,27 @@ font-weight:600;
   text-align:right;
   font-weight:700;
 }
+.addClientBtn{
+  position:fixed;
+  right:14px;
+  bottom:18px;
+  z-index:9999;
+  width:auto !important;
+  min-width:56px;
+  height:56px;
+  padding:0 18px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#34c759,#18a84a);
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  box-shadow:0 10px 24px rgba(0,0,0,.22);
+}
 </style>
 </head>
 
 <body>
-
+<button class="addClientBtn" onclick="scrollToTopForm()">+ Клиент</button>
 <h2>Delivery CRM</h2>
 
 <!-- Форма добавления встречи -->
@@ -2193,7 +2209,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Устанавливаем сегодня по умолчанию при загрузке
   setTodayFilter()
 })
+function scrollToTopForm(){
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  })
 
+  setTimeout(() => {
+    document.getElementById("name")?.focus()
+  }, 400)
+}
 </script>
 </body>
 </html>
