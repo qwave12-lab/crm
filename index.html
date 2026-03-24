@@ -1275,7 +1275,7 @@ let isMobile = m.name && String(m.name).toLowerCase().includes("mobile")
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 let isRE = m.name && String(m.name).toLowerCase().startsWith("re")
 
-if (dateInFilter && isMobile) {
+if (dateInFilter && isMobile && status === "ok") {
   mobileTotal++
 }
 if (dateInFilter && isOrange) orangeTotal++
@@ -1980,7 +1980,7 @@ let periodMeetings = meetings.filter(m => {
   return true
 })
 
-periodMeetings = periodMeetings.filter(m => !String(m.name || "").toLowerCase().includes("mobile"))
+
 
 let assigned = periodMeetings.length
 let success = 0
