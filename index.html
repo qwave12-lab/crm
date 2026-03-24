@@ -708,38 +708,36 @@ function renderServices(){
     }
   }
 
-  // CC / CC1 / CC2
-  if(type === "CC" || type === "CC1" || type === "CC2"){
-    box.innerHTML += serviceRow("ppi", "PPI")
-    box.innerHTML += serviceRow("alphaSmart", "АльфаСмарт", true)
-    box.innerHTML += serviceRow("alphaCheck", "АльфаЧек", true)
-    box.innerHTML += serviceRow("cp", "ЦП", true)
-    box.innerHTML += serviceRow("jku", "ЖКУ", true)
-  }
+// CC / CC1 / CC2
+if(type === "CC" || type === "CC1" || type === "CC2"){
+  box.innerHTML += serviceRow("ppi", "PPI")
+  box.innerHTML += serviceRow("alphaSmart", "АльфаСмарт", true)
+}
 
-  box.innerHTML += `
-    <div class="serviceItem">
-      <span>Платформа телефона</span>
-      <select id="phoneType">
-        <option value="ios">IOS</option>
-        <option value="android">Android</option>
-      </select>
-    </div>
-  `
+box.innerHTML += `
+  <div class="serviceItem">
+    <span>Платформа телефона</span>
+    <select id="phoneType">
+      <option value="ios">IOS</option>
+      <option value="android">Android</option>
+    </select>
+  </div>
+`
 
-  box.innerHTML += `
-    <div class="serviceItem">
-      <span>МП</span>
-      <select id="mpStatus" style="margin-left:8px;">
-        <option value="none">Не установил</option>
-        <option value="install">Установил</option>
-        <option value="exists">Уже было</option>
-      </select>
-    </div>
-  `
+box.innerHTML += `
+  <div class="serviceItem">
+    <span>МП</span>
+    <select id="mpStatus" style="margin-left:8px;">
+      <option value="none">Не установил</option>
+      <option value="install">Установил</option>
+      <option value="exists">Уже было</option>
+    </select>
+  </div>
+`
 }
 
 function formatName(name, status) {
+
   if (!name) return ""
 
   let lower = String(name).toLowerCase()
@@ -908,6 +906,14 @@ let phoneType=document.getElementById("phoneType")?.value || "ios"
 let bankOffer=document.getElementById("bankOffer")?.value || "no"
 let crossSale=document.getElementById("crossSale")?.value || "none"
 
+let isMobile = String(name).toLowerCase().includes("mobile")
+let crossAllowed = status === "ok" && !isMobile
+
+if (!crossAllowed) {
+  bankOffer = "no"
+  crossSale = "none"
+}
+
 let comment=document.getElementById("comment").value
   let age=document.getElementById("age")?.value || "adult"
 
@@ -915,7 +921,7 @@ let comment=document.getElementById("comment").value
 let serviceList = []
 let income = 0
 
-let isMobile = String(name).toLowerCase().includes("mobile")
+
 
 if(
   status !== "ndz" &&
@@ -1218,7 +1224,10 @@ let isMobile = m.name && String(m.name).toLowerCase().includes("mobile")
 let isOrange = m.name && String(m.name).toLowerCase().includes("orange")
 let isRE = m.name && String(m.name).toLowerCase().startsWith("re")
 
-if (dateInFilter && isMobile) mobileTotal++
+if (dateInFilter && isMobile) {
+  mobileTotal++
+  return
+}
 if (dateInFilter && isOrange) orangeTotal++
 if (dateInFilter && isRE) reTotal++
 // считаем статусы
@@ -1232,30 +1241,28 @@ if (dateInFilter && !isMobile) {
 // ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
 
-advance += Number(m.advance) || 0
-rest += Number(m.rest) || 0
-servicesIncome += Number(m.servicesIncome) || 0
+  advance += Number(m.advance) || 0
+  rest += Number(m.rest) || 0
+  servicesIncome += Number(m.servicesIncome) || 0
 
-if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-kkCount++
-if (m.services && m.services.includes("ppi")) {
-ppiCount++
+  if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+    kkCount++
+    if (m.services && m.services.includes("ppi")) {
+      ppiCount++
+    }
+  }
+
+  if (m.type === "DC" && m.bankOffer === "yes" && !isMobile) {
+    bankOffers++
+
+    if (m.crossSale === "cc" || m.crossSale === "combo") {
+      crossSales++
+      crossIncome += 350
+      rest += 350
+    }
+  }
 }
-}
 
-if (m.type === "DC" && m.bankOffer === "yes") {
-
-bankOffers++
-
-if (m.crossSale === "cc" || m.crossSale === "combo") {
-crossSales++
-crossIncome += 350
-rest += 350
-}
-
-}
-
-}
 
   // ===== СТАТИСТИКА УСЛУГ =====
 if (dateInFilter && status === "ok" && !isMobile && m.services && m.services.length > 0) {
@@ -1285,10 +1292,11 @@ if (dateInFilter && status === "ok" && !isMobile && m.services && m.services.len
     eligible = ["activation", "transaction", "alphaSmart", "alphaCheck", "cp", "jku"]
   }
 
-  // CC / CC1 / CC2
-  else if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-    eligible = ["activation", "transaction", "ppi", "alphaSmart", "alphaCheck", "cp", "jku"]
-  }
+
+// CC / CC1 / CC2
+else if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+  eligible = ["activation", "transaction", "ppi", "alphaSmart"]
+}
 
   eligible.forEach(s => {
 
@@ -1548,9 +1556,20 @@ if (s === "jku_exists") return "ЖКУ (было)"
 }<br>
             ${m.comment ? `<b>Комментарий:</b> ${m.comment}<br>` : ""}
             ${m.screenshot ? `<img src="${m.screenshot}" style="width:100%;margin-top:8px;border-radius:10px;">` : ""}
-            ${m.type === "DC" ? `
-              Cross: ${m.bankOffer === "no" ? "предложения не было" : (m.crossSale === "none" ? "отказ клиента" : (m.crossSale === "cc" ? "Cross КК" : "Cross Комбо"))}<br>
-            ` : ""}
+          ${(() => {
+  let isMobileCard = String(m.name || "").toLowerCase().includes("mobile")
+  let crossAllowedCard = m.status === "ok" && m.type === "DC" && !isMobileCard
+
+  if (!crossAllowedCard) return ""
+
+  return `Cross: ${
+    m.bankOffer === "no"
+      ? "предложения не было"
+      : (m.crossSale === "none"
+          ? "отказ клиента"
+          : (m.crossSale === "cc" ? "Cross КК" : "Cross Комбо"))
+  }<br>`
+})()}
             <input type="file" accept="image/*" onchange="addScreenshot(event, ${i})">
            <div class="cardActions">
 
@@ -1618,6 +1637,7 @@ function copyReport(id) {
     
     // Определяем теги
     let isOrange = String(m.name || "").toLowerCase().includes("orange")
+    let isMobile = String(m.name || "").toLowerCase().includes("mobile")
     let isRE = String(m.name || "").toLowerCase().startsWith("re")
     let tag = ""
     if (isOrange) tag = " 🍊"
@@ -1631,6 +1651,11 @@ function copyReport(id) {
     }
     if (m.status === "clientreject") {
   let text = `${dateStr}\n${cleanName} ${type}${tag}\nОТКАЗ КЛИЕНТА`
+  copyToClipboard(text)
+  return
+}
+if (isMobile && m.status === "ok") {
+  let text = `${dateStr}\n${cleanName} ${type}\nMOBILE\nВстреча 300 ₽`
   copyToClipboard(text)
   return
 }
@@ -1694,7 +1719,7 @@ let jku = markService("jku", "jku_exists")
 
     
     // ФОРМИРУЕМ ОТЧЁТ
- let crossBlock = ""
+let crossBlock = ""
 let mpNum = 5
 let acheckNum = 6
 let smartNum = 7
@@ -1865,6 +1890,7 @@ String(d.getMonth()+1).padStart(2,"0")+"."+
 d.getFullYear()
 
 let todayMeetings = meetings.filter(m => formatDisplayDate(m.date) === today)
+todayMeetings = todayMeetings.filter(m => !String(m.name || "").toLowerCase().includes("mobile"))
 let assigned = todayMeetings.length
 let success = 0
 let ndz = 0
@@ -1908,7 +1934,7 @@ if(services.includes("alphaCheck")) alphaCheck++
 if(services.includes("alphaSmart")) smart++
 if(services.includes("jku")) jku++
 
-if(m.crossSale==="combo"){
+if(m.status==="ok" && m.crossSale==="combo"){
 comboApproved++
 if(services.includes("activation")) comboIssued++
 }
