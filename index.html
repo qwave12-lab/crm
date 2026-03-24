@@ -758,6 +758,7 @@ function renderServices(){
 if(type === "CC" || type === "CC1" || type === "CC2"){
   box.innerHTML += serviceRow("ppi", "PPI")
   box.innerHTML += serviceRow("alphaSmart", "АльфаСмарт", true)
+  box.innerHTML += serviceRow("alphaCheck", "АльфаЧек", true)
 }
 
 box.innerHTML += `
@@ -1357,7 +1358,7 @@ if (dateInFilter && status === "ok" && !isMobile && m.services && m.services.len
 
 // CC / CC1 / CC2
 else if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-  eligible = ["activation", "transaction", "ppi", "alphaSmart"]
+  eligible = ["activation", "transaction", "ppi", "alphaSmart", "alphaCheck"]
 }
 
   eligible.forEach(s => {
