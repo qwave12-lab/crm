@@ -524,7 +524,7 @@ font-weight:600;
     <div style="display:flex; gap:8px;">
       <button onclick="setTodayFilter()" style="flex:1; background:#34c759; padding:10px;">Сегодня</button>
       <button onclick="setWeekFilter()" style="flex:1; background:#ff9500; padding:10px;">Неделя</button>
-      <button onclick="setMonthFilter()" style="flex:1; background:#007aff; padding:10px;">Март</button>
+    <button onclick="setMonthFilter()" style="flex:1; background:#007aff; padding:10px;">Месяц</button>
     </div>
     <div style="margin-top:10px; font-size:14px; color:#666;" id="periodInfo"></div>
   </div>
@@ -1961,17 +1961,30 @@ function showNotification(message, type = 'success') {
 
 function copyDayReport(){
 
-const d = new Date()
+let periodMeetings = meetings.filter(m => {
+  let meetingDate = formatDisplayDate(m.date)
 
-const today =
-String(d.getDate()).padStart(2,"0")+"."+
-String(d.getMonth()+1).padStart(2,"0")+"."+
-d.getFullYear()
+  if (!meetingDate) return false
 
-let todayMeetings = meetings.filter(m => formatDisplayDate(m.date) === today)
-todayMeetings = todayMeetings.filter(m => !String(m.name || "").toLowerCase().includes("mobile"))
-let assigned = todayMeetings.length
+  if (meetingDate.includes(".")) {
+    let parts = meetingDate.split(".")
+    let formatted = parts[2] + "-" + parts[1] + "-" + parts[0]
+
+    if (filterStartDate && formatted < filterStartDate) return false
+    if (filterEndDate && formatted > filterEndDate) return false
+    return true
+  }
+
+  if (filterStartDate && meetingDate < filterStartDate) return false
+  if (filterEndDate && meetingDate > filterEndDate) return false
+  return true
+})
+
+periodMeetings = periodMeetings.filter(m => !String(m.name || "").toLowerCase().includes("mobile"))
+
+let assigned = periodMeetings.length
 let success = 0
+let mobileSuccess = 0
 let ndz = 0
 let reject = 0
 let orangeSuccess = 0
@@ -1992,78 +2005,89 @@ let androidInstall = 0
 let iosHad = 0
 let androidHad = 0
 
-todayMeetings.forEach(m=>{
+periodMeetings.forEach(m => {
 
-let services = m.services || []
+  let services = m.services || []
+  let name = String(m.name || "").toLowerCase()
+  let isMobile = name.includes("mobile")
 
-if(m.status==="ok") success++
-if(m.status==="ndz") ndz++
-if(m.status==="bankreject") reject++
+  if(m.status==="ok") {
+    success++
+    if(isMobile) mobileSuccess++
+  }
 
-let name = String(m.name || "").toLowerCase()
+  if(m.status==="ndz") ndz++
+  if(m.status==="bankreject" || m.status==="clientreject") reject++
 
-if(name.includes("orange") && m.status==="ok"){
-orangeSuccess++
-}
-if(services.includes("activation")) activation++
-if(services.includes("transaction")) transaction++
-if(services.includes("cp")) cp++
-if(services.includes("ppi")) ppi++
-if(services.includes("alphaCheck")) alphaCheck++
-if(services.includes("alphaSmart")) smart++
-if(services.includes("jku")) jku++
+  if(name.includes("orange") && m.status==="ok"){
+    orangeSuccess++
+  }
 
-if(m.status==="ok" && m.crossSale==="combo"){
-comboApproved++
-if(services.includes("activation")) comboIssued++
-}
+  if(services.includes("activation")) activation++
+  if(services.includes("transaction")) transaction++
+  if(services.includes("cp")) cp++
+  if(services.includes("ppi")) ppi++
+  if(services.includes("alphaCheck")) alphaCheck++
+  if(services.includes("alphaSmart")) smart++
+  if(services.includes("jku")) jku++
 
-if(m.status==="ok"){
-if(m.phoneType==="ios") iosHad++
-if(m.phoneType==="android") androidHad++
-}
+  if(m.status==="ok" && m.crossSale==="combo"){
+    comboApproved++
+    if(services.includes("activation")) comboIssued++
+  }
 
-if(services.includes("mp_ios")) iosInstall++
-if(services.includes("mp_android")) androidInstall++
+  if(m.status==="ok"){
+    if(m.phoneType==="ios") iosHad++
+    if(m.phoneType==="android") androidHad++
+  }
 
+  if(services.includes("mp_ios")) iosInstall++
+  if(services.includes("mp_android")) androidInstall++
 })
+
+let periodText = "всё время"
+if (filterStartDate && filterEndDate) {
+  if (filterStartDate === filterEndDate) {
+    periodText = filterStartDate
+  } else {
+    periodText = filterStartDate + " — " + filterEndDate
+  }
+}
 
 let voc = Math.floor(Math.random()*3)+1
 
 let text =
-today+"\n"+
-"Митин О.Р\n\n"+
-
-"1. Назначено встреч "+assigned+"\n"+
-"2. Проведено "+success+"\n"+
-"3. x5 🍊"+orangeSuccess+"\n"+
-"4. НДЗ "+ndz+"\n"+
-"5. Отказ "+reject+"\n"+
-"6. Актив "+activation+"\n"+
-"7. Транзакции "+transaction+"\n"+
-"8. Цп "+cp+"\n"+
-"9. PPI "+ppi+"\n"+
-"10. AlphaCheck "+alphaCheck+"\n"+
-"11. AlphaSmart "+smart+"\n"+
-"12. ЖКУ "+jku+"\n"+
-"13. Комбо одобрено/выдано "+comboApproved+"/"+comboIssued+"\n"+
-"14. Комбо транзакции 0\n"+
-"15. Кросс Дк 0\n"+
-"16. Кросс Дк транзакции 0\n"+
-"17. БС/Инвест 0\n"+
-"18. Короб. Стах. 0\n"+
-"19. Детские 0\n"+
-"20. Выдано Дк/ транзакции Дк 0/0\n"+
-"21. IOS установил "+iosInstall+"\n"+
-"22. Android установил "+androidInstall+"\n"+
-"23. IOS было у клиентов "+iosHad+"\n"+
-"24. Android было у клиентов "+androidHad+"\n"+
-"25. VOC "+voc
+"Период: " + periodText + "\n" +
+"Митин О.Р\n\n" +
+"1. Назначено встреч " + assigned + "\n" +
+"2. Проведено " + success + "\n" +
+"3. Mobile встреч " + mobileSuccess + "\n" +
+"4. x5 🍊 " + orangeSuccess + "\n" +
+"5. НДЗ " + ndz + "\n" +
+"6. Отказ " + reject + "\n" +
+"7. Актив " + activation + "\n" +
+"8. Транзакции " + transaction + "\n" +
+"9. Цп " + cp + "\n" +
+"10. PPI " + ppi + "\n" +
+"11. AlphaCheck " + alphaCheck + "\n" +
+"12. AlphaSmart " + smart + "\n" +
+"13. ЖКУ " + jku + "\n" +
+"14. Комбо одобрено/выдано " + comboApproved + "/" + comboIssued + "\n" +
+"15. Комбо транзакции 0\n" +
+"16. Кросс Дк 0\n" +
+"17. Кросс Дк транзакции 0\n" +
+"18. БС/Инвест 0\n" +
+"19. Короб. Стах. 0\n" +
+"20. Детские 0\n" +
+"21. Выдано Дк/ транзакции Дк 0/0\n" +
+"22. IOS установил " + iosInstall + "\n" +
+"23. Android установил " + androidInstall + "\n" +
+"24. IOS было у клиентов " + iosHad + "\n" +
+"25. Android было у клиентов " + androidHad + "\n" +
+"26. VOC " + voc
 
 navigator.clipboard.writeText(text)
-
-showNotification("✅ Отчёт дня скопирован")
-
+showNotification("✅ Отчёт по выбранному периоду скопирован")
 }
 
 function deleteOne(i){
