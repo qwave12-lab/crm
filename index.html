@@ -589,6 +589,7 @@ let transactionPercent = 0
 let ppiPercent = 0
 let bankOffers = 0
 let crossSales = 0
+let crossComboSales = 0
 
 let meetings=[]
 let cardsCollapsed=false
@@ -682,7 +683,7 @@ ${value}% / ${plan}%
 `
 }
 
-let comboPercent = bankOffers>0 ? Math.round(crossSales/bankOffers*100) : 0
+let comboPercent = bankOffers > 0 ? Math.round(crossComboSales / bankOffers * 100) : 0
 
 let html=`
 <b>❗ План на март</b><br><br>
@@ -1203,7 +1204,6 @@ let transfers = 0, success = 0, bankRejects = 0, clientRejects = 0, ndz = 0, mob
 let kkCount = 0, ppiCount = 0
 let dcIssued = 0
 let ccIssued = 0
-let crossComboSales = 0
 let crossCCSales = 0
   let iosTotal = 0, androidTotal = 0
   let iosInstalled = 0, androidInstalled = 0
@@ -1216,8 +1216,9 @@ let crossCCSales = 0
   let rest = 0
   let servicesIncome = 0
   let crossIncome = 0
-  bankOffers = 0
-  crossSales = 0
+bankOffers = 0
+crossSales = 0
+crossComboSales = 0
   
   let serviceStats = {}
   let serviceBase = {
@@ -1424,7 +1425,7 @@ ppiPercent = kkCount > 0 ? Math.round(ppiCount / kkCount * 100) : 0
 
   // Проценты услуг
 let activationPercent = serviceBase.activation > 0 ? Math.round((serviceStats.activation || 0) / serviceBase.activation * 100) : 0
-let transactionPercent = serviceBase.transaction > 0 ? Math.round((serviceStats.transaction || 0) / serviceBase.transaction * 100) : 0
+transactionPercent = serviceBase.transaction > 0 ? Math.round((serviceStats.transaction || 0) / serviceBase.transaction * 100) : 0
 let cpPercent = serviceBase.cp > 0 ? Math.round((serviceStats.cp || 0) / serviceBase.cp * 100) : 0
 let jkuPercent = serviceBase.jku > 0 ? Math.round((serviceStats.jku || 0) / serviceBase.jku * 100) : 0
 let smartPercent = serviceBase.alphaSmart > 0 ? Math.round((serviceStats.alphaSmart || 0) / serviceBase.alphaSmart * 100) : 0
@@ -1494,7 +1495,8 @@ for (let s in serviceStats) {
     <div class="statsRow"><span>% успешных</span><span>${successPercent}% (${success})</span></div>
     <div class="statsRow"><span>% переносов</span><span>${transferPercent}% (${transfers})</span></div>
     <div class="statsRow"><span>% НДЗ</span><span>${ndzPercent}% (${ndz})</span></div>
-    <div class="statsRow"><span>% отказов</span><span>${rejectPercent}% (${rejects})</span></div>
+  <div class="statsRow"><span>% отказ банка</span><span>${bankRejectPercent}% (${bankRejects})</span></div>
+<div class="statsRow"><span>% отказ клиента</span><span>${clientRejectPercent}% (${clientRejects})</span></div>
     <br>
     <b>УСЛУГИ</b><br>
     <div class="statsRow"><span>Активации</span><span>${activationPercent}%</span></div>
