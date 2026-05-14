@@ -583,7 +583,7 @@ font-weight:600;
     <button onclick="toggleCards()" id="toggleBtn" style="float:right">Свернуть ▲</button>
   </h3>
 
-  <input id="searchInput" placeholder="ФИО или дата (11.03.2026)" oninput="render()">
+    <input id="searchInput" placeholder="ФИО или дата (11.03.2026)" oninput="handleSearchInput()" autocomplete="off">
   <div id="meetings"></div>
   <div id="collapsedInfo" style="display:none;text-align:center;color:#666;margin-top:10px"></div>
 </div>
@@ -609,6 +609,15 @@ let crossComboSales = 0
 
 let meetings=[]
 let cardsCollapsed=false
+let searchInputTimer = null
+
+function handleSearchInput() {
+  clearTimeout(searchInputTimer)
+
+  searchInputTimer = setTimeout(() => {
+    render()
+  }, 300)
+}
 function getPlanMonthTitle() {
   const months = [
     "январь",
@@ -1247,7 +1256,7 @@ function syncPrevService(value){
 
 function render() {
 
-  console.log('Всего встреч:', meetings.length)
+  
   let list = document.getElementById("meetings")
   list.innerHTML = ""
   let search = document.getElementById("searchInput")?.value?.toLowerCase() || ""
