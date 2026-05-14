@@ -568,7 +568,7 @@ font-weight:600;
   <div id="shortStats"></div>
 
 <button onclick="toggleFullStats()" id="statsBtn" class="floatingStatsBtn">Показать статистику ▼</button>
-  <button onclick="togglePlan()" id="planBtn">План на март 📊</button>
+ <button onclick="togglePlan()" id="planBtn">План 📊</button>
   <button onclick="copyDayReport()">Отчёт дня 📋</button>
 
   <div id="planBlock" style="display:none;margin-top:10px"></div>
@@ -609,6 +609,39 @@ let crossComboSales = 0
 
 let meetings=[]
 let cardsCollapsed=false
+function getPlanMonthTitle() {
+  const months = [
+    "январь",
+    "февраль",
+    "март",
+    "апрель",
+    "май",
+    "июнь",
+    "июль",
+    "август",
+    "сентябрь",
+    "октябрь",
+    "ноябрь",
+    "декабрь"
+  ]
+
+  let date = new Date()
+
+  // Если выбран период — берём месяц из начала периода
+  if (filterStartDate) {
+    let parts = filterStartDate.split("-")
+    date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+  }
+
+  return `План на ${months[date.getMonth()]}`
+}
+
+function updatePlanButtonTitle() {
+  let btn = document.getElementById("planBtn")
+  if (btn) {
+    btn.innerText = getPlanMonthTitle() + " 📊"
+  }
+}
 // ===== ФОРМАТИРОВАНИЕ ДАТЫ =====
 function formatDisplayDate(dateStr) {
   if (!dateStr) return ""
@@ -674,22 +707,24 @@ m.phone === phone
 }
 function renderPlan(){
 
-let comboPlan=10
-let androidPlan=95
-let iosPlan=75
-let transactionPlan=93
-let ppiPlan=90
+  updatePlanButtonTitle()
 
-function bar(value,plan){
+  let comboPlan=10
+  let androidPlan=95
+  let iosPlan=75
+  let transactionPlan=93
+  let ppiPlan=90
 
-let percent=Math.min(value,100)
+  function bar(value,plan){
 
-let color="red"
+    let percent=Math.min(value,100)
 
-if(value>=plan) color="green"
-else if(value>=plan*0.8) color="yellow"
+    let color="red"
 
-return `
+    if(value>=plan) color="green"
+    else if(value>=plan*0.8) color="yellow"
+
+    return `
 <div class="planItem">
 ${value}% / ${plan}%
 <div class="planBar">
@@ -697,12 +732,13 @@ ${value}% / ${plan}%
 </div>
 </div>
 `
-}
+  }
 
-let comboPercent = bankOffers > 0 ? Math.round(crossComboSales / bankOffers * 100) : 0
+  let comboPercent = bankOffers > 0 ? Math.round(crossComboSales / bankOffers * 100) : 0
+  let planTitle = getPlanMonthTitle()
 
-let html=`
-<b>❗ План на март</b><br><br>
+  let html=`
+<b>❗ ${planTitle}</b><br><br>
 
 Комбо
 ${bar(comboPercent,comboPlan)}
@@ -720,7 +756,7 @@ PPI
 ${bar(ppiPercent,ppiPlan)}
 `
 
-document.getElementById("planBlock").innerHTML=html
+  document.getElementById("planBlock").innerHTML=html
 }
 function addScreenshot(event,i){
 
@@ -1692,7 +1728,7 @@ if (s === "jku_exists") return "ЖКУ (было)"
   // Управление сворачиванием
   let btn = document.getElementById("toggleBtn")
   let info = document.getElementById("collapsedInfo")
-  if (cardsCollapsed) {
+   if (cardsCollapsed) {
     list.style.display = "none"
     info.style.display = "block"
     info.innerText = "Скрыто клиентов: " + meetings.length
@@ -1701,6 +1737,12 @@ if (s === "jku_exists") return "ЖКУ (было)"
     list.style.display = "block"
     info.style.display = "none"
     btn.innerText = "Свернуть ▲"
+  }
+
+  updatePlanButtonTitle()
+
+  if (document.getElementById("planBlock")?.style.display !== "none") {
+    renderPlan()
   }
 }
 
