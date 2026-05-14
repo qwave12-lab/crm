@@ -1306,40 +1306,46 @@ if (dateInFilter) {
 }
 
 // ===== ДОХОД =====
+// ===== ДОХОД =====
 if (dateInFilter && status === "ok") {
-  if (isMobile) return
+  // Mobile учитываем только как аванс 300 ₽
+  if (isMobile) {
+    advance += Number(m.advance) || 300
+    return
+  }
 
   advance += Number(m.advance) || 0
   rest += Number(m.rest) || 0
   servicesIncome += Number(m.servicesIncome) || 0
 
-if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
-  kkCount++
-  ccIssued++
-  if (m.services && m.services.includes("ppi")) {
-    ppiCount++
-  }
-} else if (m.type === "DC") {
-  dcIssued++
-}
+  if (m.type === "CC" || m.type === "CC1" || m.type === "CC2") {
+    kkCount++
+    ccIssued++
 
- if (m.type === "DC" && m.bankOffer === "yes" && !isMobile) {
-  bankOffers++
-
-  if (m.crossSale === "cc") {
-    crossCCSales++
-    crossSales++
-    crossIncome += 350
-    rest += 350
+    if (m.services && m.services.includes("ppi")) {
+      ppiCount++
+    }
+  } else if (m.type === "DC") {
+    dcIssued++
   }
 
-  if (m.crossSale === "combo") {
-    crossComboSales++
-    crossSales++
-    crossIncome += 350
-    rest += 350
+  if (m.type === "DC" && m.bankOffer === "yes") {
+    bankOffers++
+
+    if (m.crossSale === "cc") {
+      crossCCSales++
+      crossSales++
+      crossIncome += 350
+      rest += 350
+    }
+
+    if (m.crossSale === "combo") {
+      crossComboSales++
+      crossSales++
+      crossIncome += 350
+      rest += 350
+    }
   }
-}
 }
 
 
